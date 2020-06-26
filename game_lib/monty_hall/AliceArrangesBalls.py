@@ -1,41 +1,7 @@
 import pygame
-import qiskit
-import os
-import sys
-
-import matplotlib.backends.backend_agg as agg
-
 import numpy
-
-class CircuitDisplay():
-    
-    def __init__(self, pos):
-        self.qr = qiskit.QuantumRegister(7)
-        self.cr = qiskit.ClassicalRegister(2)
-        self.qc = qiskit.QuantumCircuit(self.qr, self.cr)
-        self.update_image()
-        self.rect = self.image.get_rect()
-        self.rect.center = pos
-        self.clickable = False
-    
-    def update_image(self):
-        self.update_circuit()
-        fig = self.qc.draw(output = 'mpl')
-        canvas = agg.FigureCanvasAgg(fig)
-        canvas.draw()
-        renderer = canvas.get_renderer()
-        raw_data = renderer.tostring_rgb()
-        size = canvas.get_width_height()
-        raw_image = pygame.image.fromstring(raw_data, size, "RGB")
-        self.image = pygame.transform.scale(raw_image, (SCREEN_SIZE[0], 300))
-        
-    def update_circuit(self):
-        self.qc.x([0,1,2,3,4,5,6])
-
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
-
-
+from game_lib.monty_hall.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
+from game_lib.parameters import BACKGROUND_COLOR, FPS
 
 class Ball():
     
@@ -66,7 +32,6 @@ class Ball():
             self.rect.center = self.pos_list[index]
             self.count = 0
         surface.blit(self.image, self.rect.topleft)
-
 
 
 class CheckBox():
@@ -106,7 +71,6 @@ class CheckBox():
             surface.blit(self.images[1], self.rect.topleft)
         else:
             surface.blit(self.images[0], self.rect.topleft)
-
 
 
 class Door():
@@ -193,7 +157,6 @@ class DoorBar():
         surface.blit(self.text, self.text_rect)
 
 
-
 class AliceArrangesBalls():
     """
     A class to manage our event, game loop, and overall program flow.
@@ -206,13 +169,14 @@ class AliceArrangesBalls():
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
         self.clock = pygame.time.Clock()
-        self.fps = 60
-        self.done = False
+        self.fps = FPS
+
         self.keys = pygame.key.get_pressed()
+        
         self.dragged_db = None
         self.checked_cb = None
         
-        cx, cy = self.screen_rect.center     
+        cx, cy = self.screen_rect.center
         self.DoorBars = [DoorBar((cx/2, cy), 1/3),
                          DoorBar((cx, cy), 1/3),
                          DoorBar((3*cx/2, cy), 1/3)]
@@ -230,6 +194,18 @@ class AliceArrangesBalls():
                             (3*cx/2, cy - Door.height/4)], 
                             [1/3, 1/3, 1/3])
         
+        self.ConfirmButton = ConfirmButton((cx, cy + Door.height))
+        self.BackButton = BackButton((BackButton.width/2 + 20, BackButton.height/2 + 20))
+        self.CircuitButton = CircuitButton((3*CircuitButton.width/2 + 40, CircuitButton.height/2 + 20))
+        
+        self.tutorial_on = False
+        #self.TutorialBlocks = [TutorialBlock()]
+        
+        self.next_stage = False
+        self.quit = False
+        self.back = False
+        self.show_circuit = False
+        
 
     def event_loop(self):
         """
@@ -239,45 +215,54 @@ class AliceArrangesBalls():
         """
         for event in pygame.event.get():
             if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
-                self.done = True
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for db in self.DoorBars:
-                    db.check_click(event.pos)
-                    if db.click == True:
-                        self.dragged_db = db
-                        break
-                for cb in self.CheckBoxes:
-                    cb.check_click(event.pos)
-                    if cb.click == True:
-                        # if True, it means we unchecked it
-                        if cb.checked == True:
-                            self.checked_cb = None
-                        # if not, it means we checked it
-                        else:
-                            self.checked_cb = cb
-                        break
+                self.quit = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    
+                    for db in self.DoorBars:
+                        db.check_click(event.pos)
+                        if db.click == True:
+                            self.dragged_db = db
+                            break
+                    
+                    for cb in self.CheckBoxes:
+                        cb.check_click(event.pos)
+                        if cb.click == True:
+                            # if True, it means we unchecked it
+                            if cb.checked == True:
+                                self.checked_cb = None
+                            # if not, it means we checked it
+                            else:
+                                self.checked_cb = cb
+                            break
+                    
+                    self.ConfirmButton.check_click(event.pos)
+                    self.BackButton.check_click(event.pos)
+                    self.CircuitButton.check_click(event.pos)
                 
                 '''
                 print(self.DoorBars.index(self.dragged_db) if self.dragged_db != None else None,
                       self.CheckBoxes.index(self.checked_cb) if self.checked_cb != None else None)
                 '''
                    
-            elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                for db in self.DoorBars:
-                    if db.click:
-                        db.click = False
-                        self.dragged_db = None
-                        break
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if event.button == 1:
+                    for db in self.DoorBars:
+                        if db.click:
+                            db.click = False
+                            self.dragged_db = None
+                            break
                 
             elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
                 self.keys = pygame.key.get_pressed()
+                
 
     def render(self):
         """
         All drawing should be found here.
         This is the only place that pygame.display.update() should be found.
         """
-        self.screen.fill(pygame.Color("white"))
+        self.screen.fill(pygame.Color(BACKGROUND_COLOR))
         
         for db in self.DoorBars:
             db.draw(self.screen)
@@ -289,8 +274,12 @@ class AliceArrangesBalls():
             cb.draw(self.screen)
         
         self.Ball.draw(self.screen)
+        self.ConfirmButton.draw(self.screen)
+        self.BackButton.draw(self.screen)
+        self.CircuitButton.draw(self.screen)
         
         pygame.display.update()
+        
 
     def main_loop(self):
         """
@@ -298,7 +287,7 @@ class AliceArrangesBalls():
         Like the event_loop, there should not be more than one game_loop.
         """
                 
-        while not self.done:
+        while not (self.quit or self.next_stage or self.back or self.show_circuit):
             self.event_loop()
             
             # CheckBox
@@ -331,29 +320,16 @@ class AliceArrangesBalls():
             #Ball
             self.Ball.update_distribution([db.prob for db in self.DoorBars])
             
+            if self.ConfirmButton.click:
+                self.ConfirmButton.update_click()
+                self.next_stage = True 
+            elif self.BackButton.click:
+                self.BackButton.update_click()
+                self.back = True
+            elif self.CircuitButton.click:
+                self.CircuitButton.update_click()
+                self.show_circuit = True
+            
             self.render()
             self.clock.tick(self.fps)
 
-
-
-def main():
-    """
-    Prepare our environment, create a display, and start the program.
-    """
-    
-    CAPTION = "SHIT"
-    SCREEN_SIZE = (1000, 500)
-    
-    os.environ['SDL_VIDEO_CENTERED'] = '1'
-    pygame.init()
-    pygame.display.set_caption(CAPTION)
-    #pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    pygame.display.set_mode(SCREEN_SIZE)
-    AliceArrangesBalls().main_loop()
-    pygame.quit()
-    sys.exit()
-
-
-
-if __name__ == '__main__':
-    main()
