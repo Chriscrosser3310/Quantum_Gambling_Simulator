@@ -3,15 +3,9 @@ import qiskit
 import os
 import sys
 
-import matplotlib
 import matplotlib.backends.backend_agg as agg
 
 import numpy
-
-
-CAPTION = "SHIT"
-SCREEN_SIZE = (1000, 500)
-
 
 class CircuitDisplay():
     
@@ -45,15 +39,16 @@ class CircuitDisplay():
 
 class Ball():
     
+    width = 50
+    height = 50  
+    
     def __init__(self, pos_list, prob_dist):
         
         self.count = 0
         
         self.pos_list = pos_list
         self.prob_dist = prob_dist
-        
-        self.width = 50
-        self.height = 50   
+         
         self.image = pygame.transform.scale(pygame.image.load('data/prize.png').convert_alpha(), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
@@ -74,30 +69,15 @@ class Ball():
 
 
 
-class Door():
-    
-    def __init__(self, pos):
-        self.width = 100
-        self.height = 200    
-        self.image = pygame.transform.scale(pygame.image.load('data/door.png'), 
-                                            (self.width, self.height))     
-        self.rect = self.image.get_rect()
-        self.rect.center = pos
-        
-        self.clickable = False
-    
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
-
-
-
 class CheckBox():
+    
+    width = 30
+    height = 30 
     
     def __init__(self, pos):
         self.checked = False
         
-        self.width = 30
-        self.height = 30 
+        
         self.images = [pygame.transform.scale(pygame.image.load('data/unchecked_checkbox.png'), 
                                               (self.width, self.height)),
                        pygame.transform.scale(pygame.image.load('data/checked_checkbox.png'), 
@@ -126,21 +106,41 @@ class CheckBox():
             surface.blit(self.images[1], self.rect.topleft)
         else:
             surface.blit(self.images[0], self.rect.topleft)
+
+
+
+class Door():
+    
+    width = 100
+    height = 200   
+    
+    def __init__(self, pos):   
+        self.image = pygame.transform.scale(pygame.image.load('data/door.png'), 
+                                            (self.width, self.height))     
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+        
+        self.clickable = False
+    
+    def draw(self, surface):
+        surface.blit(self.image, self.rect.topleft)
         
         
 class DoorBar():
     
+    width = Door.width
+    height = Door.height  
+    
     def __init__(self, pos, prob):
-        self.width = 100
-        self.max_height = 200  
-        self.rect = pygame.Rect((0,0), (self.width, prob*self.max_height))
-        self.rect.bottomleft = (pos[0] - self.width/2, pos[1] + self.max_height/2)
+        
+        self.rect = pygame.Rect((0,0), (self.width, prob*self.height))
+        self.rect.bottomleft = (pos[0] - self.width/2, pos[1] + self.height/2)
         
         self.prob = prob
-        self.update_text("{:04.1f}%".format(100*self.prob)) # self.text
+        self.update_text("{:03.1f}%".format(100*self.prob)) # self.text
         
         self.text_rect = self.text.get_rect()
-        self.text_rect.center = (self.rect.centerx, self.rect.bottom- self.max_height - 20)
+        self.text_rect.center = (self.rect.centerx, self.rect.bottom- self.height - 20)
         
         self.clickable = True
         self.click = False
@@ -148,7 +148,7 @@ class DoorBar():
     
     def check_click(self, pos):
         if self.rect.left <= pos[0] and self.rect.right >= pos[0]:
-            if self.rect.bottom - self.max_height <= pos[1] and self.rect.bottom >= pos[1]:
+            if self.rect.bottom - self.height <= pos[1] and self.rect.bottom >= pos[1]:
                 self.click = True
                 pygame.mouse.get_rel()
     
@@ -164,8 +164,8 @@ class DoorBar():
             original_h = self.rect.h
             self.rect.h -= dh
             
-            if self.rect.h > self.max_height:
-                self.rect.h = self.max_height
+            if self.rect.h > self.height:
+                self.rect.h = self.height
             
             elif self.rect.h < 0:
                 self.rect.h = 0
@@ -173,8 +173,8 @@ class DoorBar():
             center_moved = self.rect.h - original_h 
             self.rect.center = (self.rect.center[0], self.rect.center[1] - center_moved)
 
-            self.prob = self.rect.h/self.max_height
-            self.update_text("{:04.1f}%".format(100*self.prob))
+            self.prob = self.rect.h/self.height
+            self.update_text("{:03.1f}%".format(100*self.prob))
     
     
     def update_with_prob(self, prob):
@@ -185,7 +185,7 @@ class DoorBar():
         self.rect.center = (self.rect.center[0], self.rect.center[1] - center_moved)
     
         self.prob = prob
-        self.update_text("{:04.1f}%".format(100*self.prob))
+        self.update_text("{:03.1f}%".format(100*self.prob))
     
     
     def draw(self, surface):
@@ -212,7 +212,7 @@ class AliceArrangesBalls():
         self.dragged_db = None
         self.checked_cb = None
         
-        cx, cy = self.screen_rect.center        
+        cx, cy = self.screen_rect.center     
         self.DoorBars = [DoorBar((cx/2, cy), 1/3),
                          DoorBar((cx, cy), 1/3),
                          DoorBar((3*cx/2, cy), 1/3)]
@@ -221,13 +221,13 @@ class AliceArrangesBalls():
                       Door((cx, cy)),
                       Door((3*cx/2, cy))]
         
-        self.CheckBoxes = [CheckBox((cx/2, cy + 120)),
-                           CheckBox((cx, cy + 120)),
-                           CheckBox((3*cx/2, cy + 120))]
+        self.CheckBoxes = [CheckBox((cx/2, cy + Door.height/2 + 20)),
+                           CheckBox((cx, cy + Door.height/2 + 20)),
+                           CheckBox((3*cx/2, cy + Door.height/2 + 20))]
         
-        self.Ball = Ball([(cx/2, cy - 50), 
-                            (cx, cy - 50), 
-                            (3*cx/2, cy - 50)], 
+        self.Ball = Ball([(cx/2, cy - Door.height/4), 
+                            (cx, cy - Door.height/4), 
+                            (3*cx/2, cy - Door.height/4)], 
                             [1/3, 1/3, 1/3])
         
 
@@ -267,9 +267,10 @@ class AliceArrangesBalls():
                     if db.click:
                         db.click = False
                         self.dragged_db = None
+                        break
                 
             elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
-                self.keys = pygame.key.get_pressed() 
+                self.keys = pygame.key.get_pressed()
 
     def render(self):
         """
@@ -334,10 +335,15 @@ class AliceArrangesBalls():
             self.clock.tick(self.fps)
 
 
+
 def main():
     """
     Prepare our environment, create a display, and start the program.
     """
+    
+    CAPTION = "SHIT"
+    SCREEN_SIZE = (1000, 500)
+    
     os.environ['SDL_VIDEO_CENTERED'] = '1'
     pygame.init()
     pygame.display.set_caption(CAPTION)
@@ -347,4 +353,7 @@ def main():
     pygame.quit()
     sys.exit()
 
-main()
+
+
+if __name__ == '__main__':
+    main()
