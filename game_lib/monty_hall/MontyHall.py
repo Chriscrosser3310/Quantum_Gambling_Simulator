@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import gc
 from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
+from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.ShowResult import ShowResult
 from game_lib.parameters import BACKGROUND_COLOR, FPS
 from numpy import arctan, sqrt, pi
+
 
 class CircuitDisplay():
     
@@ -22,8 +24,7 @@ class CircuitDisplay():
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.clickable = False
-        
-        
+
     def update_image(self):
         fig = self.qc.draw(output = 'mpl')
         canvas = agg.FigureCanvasAgg(fig)
@@ -89,8 +90,10 @@ class MontyHall():
         self.fps = FPS
         
         self.keys = pygame.key.get_pressed()
-        
-        self.stages = [AliceArrangesBalls(), ShowResult()]
+
+        # data at top level
+        data = {"bob_choice": -1}
+        self.stages = [BobChoosesDoor(data), AliceArrangesBalls(data), ShowResult(data)]
         self.stage_index = 0
         self.quit = False
         self.back = False

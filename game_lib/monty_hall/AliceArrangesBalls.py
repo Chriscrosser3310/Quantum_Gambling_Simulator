@@ -161,7 +161,7 @@ class AliceArrangesBalls():
     """
     A class to manage our event, game loop, and overall program flow.
     """
-    def __init__(self):
+    def __init__(self, data):
         """
         Get a reference to the screen (created in main); define necessary
         attributes; and create our thing.

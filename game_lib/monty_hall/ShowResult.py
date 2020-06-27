@@ -52,7 +52,7 @@ class Message():
 
 
 class ShowResult():
-    def __init__(self):
+    def __init__(self, data):
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
         self.clock = pygame.time.Clock()

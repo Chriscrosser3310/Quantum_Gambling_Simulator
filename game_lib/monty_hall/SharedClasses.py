@@ -19,7 +19,7 @@ class ConfirmButton():
             self.click = True
     
     def update_click(self):
-        if self.click == True:
+        if self.click:
             self.click = False
     
     def draw(self, surface):
