@@ -26,7 +26,7 @@ class DoorAlice():
                                               (self.width*3//2, self.height*3//4))
         
         self.alice_rect = self.alice_image.get_rect()
-        self.alice_rect.center = (pos[0], pos[1] - self.height*9//8)
+        self.alice_rect.center = (pos[0] - self.width*4//3, pos[1])
         
         self.images = [pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/door.png'),
                                             (self.width, self.height)),

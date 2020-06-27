@@ -6,8 +6,8 @@ from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
 class Ball():
     
-    width = 50
-    height = 50  
+    width = 30
+    height = 30  
     
     def __init__(self, pos_list, prob_dist):
         
@@ -16,7 +16,7 @@ class Ball():
         self.pos_list = pos_list
         self.prob_dist = prob_dist
          
-        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/prize.png').convert_alpha(), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/ball.png').convert_alpha(), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = self.pos_list[0]
@@ -238,12 +238,13 @@ class AliceArrangesBalls():
                         if db != checked_db and db != self.dragged_db:
                             db.update_with_prob(1 - checked_prob - self.dragged_db.prob)
                             
+            self.data['BallProbDist'] = [db.prob for db in self.DoorBars]
+                                        
             #Ball
             self.Ball.update_distribution([db.prob for db in self.DoorBars])
             
             if self.ConfirmButton.click:
                 self.ConfirmButton.update_click()
-                self.data['BallProbDist'] = [db.prob for db in self.DoorBars]
                 self.next_stage = True 
             elif self.BackButton.click:
                 self.BackButton.update_click()
