@@ -27,6 +27,32 @@ class ConfirmButton():
         surface.blit(self.image, self.rect.topleft)
 
 
+class OpenButton():
+    
+    width = 80
+    height = 80
+    
+    def __init__(self, pos): 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/open_button.png'), 
+                                            (self.width, self.height))     
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
+        
+        self.clickable = True
+        self.click = False
+        
+    def check_click(self, pos):
+        if self.rect.collidepoint(pos):
+            self.click = True
+    
+    def update_click(self):
+        if self.click:
+            self.click = False
+    
+    def draw(self, surface):
+        surface.blit(self.image, self.rect.topleft)
+
+
 class BackButton():
     
     width = 50

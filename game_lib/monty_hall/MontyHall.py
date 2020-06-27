@@ -7,6 +7,7 @@ from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
 from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.ShowResult import ShowResult
+from game_lib.monty_hall.AliceOpensDoor import AliceOpensDoor
 from game_lib.parameters import BACKGROUND_COLOR, FPS
 from numpy import arctan, sqrt, pi
 
@@ -98,7 +99,7 @@ class MontyHall():
                      'SwitchProbDist': [1/2, 1/2],
                      'ExpectedValue': 0.0}
 
-        self.stages = [BobChoosesDoor(self.data), AliceArrangesBalls(self.data),
+        self.stages = [ AliceArrangesBalls(self.data), BobChoosesDoor(self.data), AliceOpensDoor(self.data),
                        ShowResult(self.data)]
 
         self.stage_index = 0
