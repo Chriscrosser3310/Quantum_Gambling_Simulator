@@ -72,7 +72,7 @@ class ShowResult():
                                self.data['ExpectedValue'])
 
         # buttons
-        self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))
+        self.ConfirmButton = ConfirmButton((cx, cy * 9 / 5))
         self.BackButton = BackButton(
             (BackButton.width / 2 + 20, BackButton.height / 2 + 20))
         self.CircuitButton = CircuitButton(

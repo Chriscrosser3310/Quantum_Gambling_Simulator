@@ -1,75 +1,52 @@
 import pygame
 import numpy
 from game_lib.monty_hall.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
-from game_lib.parameters import BACKGROUND_COLOR, FPS
+from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
 
-class Caption:
-    width = 800
-    height = 100
-
-    def __init__(self, pos):
-        self.rect = self.image.get_rect()
-        self.rect.center = pos
-
-
-class Door:
+class DoorBob():
+    
     width = 100
     height = 200
 
-    def __init__(self, pos, bob):
-        self.bob = bob
-        self.image = pygame.transform.scale(pygame.image.load('assets/images/door.png'),
-                                            (self.width, self.height))
-        self.rect = self.image.get_rect()
-        self.rect.center = pos
-
-        self.clickable = False
-
-    def draw(self, surface):
-        surface.blit(self.image, self.rect.topleft)
-
-    def check_click(self, pos):
-        if self.rect.collidepoint(pos):
-            self.bob.click = True
-
-
-class CheckBob:
-    width = 150
-    height = 150
-
     def __init__(self, pos, data):
+        
         self.data = data
-        self.checked = False
+        
+        self.bob_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/bob.jpg'),
+                                              (self.width*3//2, self.height*3//4))
+        
+        self.bob_rect = self.bob_image.get_rect()
+        self.bob_rect.center = (pos[0] - self.width*4//3, pos[1])
+        
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/door.png'),
+                                            (self.width, self.height))
+        
+        self.rect = self.image.get_rect()
+        self.rect.topleft = (pos[0] - self.width/2, pos[1] - self.height/2)
 
-        self.images = [pygame.transform.scale(pygame.image.load('assets/images/bob.jpg'),
-                                              (self.width, self.height)),
-                       pygame.transform.scale(pygame.image.load('assets/images/bob.jpg'),
-                                              (0, 0))]
-        self.rect = self.images[0].get_rect()
-        self.rect.center = pos
-
-        self.clickable = True
         self.click = False
-
-    def check_click(self, pos):
-        if self.rect.collidepoint(pos):
-            self.click = True
-
+        
     def update_click(self):
         if self.click:
             self.checked = not self.checked
             self.click = False
-            self.data["BobChosenDoor"] = -1
-
+            self.data['BobChosenDoor'] = -1
+            
     def force_unchecked(self):
         self.checked = False
 
+    def check_click(self, pos):
+        if self.rect.collidepoint(pos):
+            self.click = True
+    
     def draw(self, surface):
         if self.checked:
-            surface.blit(self.images[0], self.rect.topleft)
+            surface.blit(self.bob_image, self.bob_rect.topleft)
+            surface.blit(self.image, self.rect.topleft)
         else:
-            surface.blit(self.images[1], self.rect.topleft)
+            surface.blit(self.image, self.rect.topleft)
+
 
 
 class BobChoosesDoor:
@@ -82,23 +59,17 @@ class BobChoosesDoor:
 
         self.keys = pygame.key.get_pressed()
 
-        self.dragged_db = None
-        self.checked_cb = None
+        self.checked_db = None
 
         cx, cy = self.screen_rect.center
 
-        self.Doors = [Door((cx / 2, cy), None),
-                      Door((cx, cy), None),
-                      Door((3 * cx / 2, cy), None)]
+        self.DoorBobs = [DoorBob((cx / 2, cy), self.data),
+                           DoorBob((cx, cy), self.data),
+                           DoorBob((3 * cx / 2, cy), self.data)]
 
-        self.CheckBobs = [CheckBob((cx / 2, cy - Door.height / 2 - 80), data),
-                          CheckBob((cx, cy - Door.height / 2 - 80), data),
-                          CheckBob((3 * cx / 2, cy - Door.height / 2 - 80), data)]
+        self.ConfirmButton = ConfirmButton((cx, cy * 9 / 5))
+        self.CircuitButton = CircuitButton((3 * CircuitButton.width / 2 + 40, CircuitButton.height / 2 + 20))
 
-        for i in range(0, 3):
-            self.Doors[i].bob = self.CheckBobs[i]
-
-        self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))
         self.BackButton = BackButton(
             (BackButton.width / 2 + 20, BackButton.height / 2 + 20))
 
@@ -110,6 +81,7 @@ class BobChoosesDoor:
         self.back = False
         self.show_circuit = False
 
+
     def event_loop(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
@@ -117,33 +89,31 @@ class BobChoosesDoor:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
 
-                    for door in self.Doors:
-                        door.check_click(event.pos)
-
-                    for cb in self.CheckBobs:
-                        cb.check_click(event.pos)
-                        if cb.click:
+                    for db in self.DoorBobs:
+                        db.check_click(event.pos)
+                        if db.click:
                             # if True, it means we unchecked it
-                            if cb.checked:
-                                self.checked_cb = None
+                            if db.checked:
+                                self.checked_db = None
                             # if not, it means we checked it
                             else:
-                                self.checked_cb = cb
+                                self.checked_db = db
                             break
 
                     self.ConfirmButton.check_click(event.pos)
                     self.BackButton.check_click(event.pos)
+                    self.CircuitButton.check_click(event.pos)
 
     def render(self):
         self.screen.fill(pygame.Color(BACKGROUND_COLOR))
-        for d in self.Doors:
-            d.draw(self.screen)
-        for cb in self.CheckBobs:
-            cb.draw(self.screen)
+        for db in self.DoorBobs:
+            db.draw(self.screen)
         self.ConfirmButton.draw(self.screen)
         self.BackButton.draw(self.screen)
+        self.CircuitButton.draw(self.screen)
 
         pygame.display.update()
+
 
     def main_loop(self):
         while not (self.quit or self.next_stage or self.back or self.show_circuit):
@@ -151,21 +121,25 @@ class BobChoosesDoor:
 
             # CheckBob
             for i in range(0, 3):
-                cb = self.CheckBobs[i]
-                if cb != self.checked_cb:
-                    cb.force_unchecked()
+                db = self.DoorBobs[i]
+                if db != self.checked_db:
+                    db.force_unchecked()
                 else:
                     self.data["BobChosenDoor"] = i
-                cb.update_click()
+                db.update_click()
 
             if self.ConfirmButton.click:
                 self.ConfirmButton.update_click()
                 # continue only when bob's choice has been set
                 if self.data["BobChosenDoor"] != -1:
                     self.next_stage = True
+                    
             elif self.BackButton.click:
                 self.BackButton.update_click()
                 self.back = True
+            elif self.CircuitButton.click:
+                self.CircuitButton.update_click()
+                self.show_circuit = True
 
             self.render()
             self.clock.tick(self.fps)

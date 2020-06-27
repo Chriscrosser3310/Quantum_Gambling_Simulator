@@ -43,8 +43,7 @@ class Menu():
         self.keys = pygame.key.get_pressed()
         
         cx, cy = self.screen_rect.center
-        self.StartButtons = [StartButton('Monty Hall1', MontyHall, (cx, cy-50)),
-                             StartButton('Monty Hall2', MontyHall, (cx, cy))]
+        self.StartButtons = [StartButton('Monty Hall', MontyHall, (cx, cy-50))]
         
         self.quit = False
     
