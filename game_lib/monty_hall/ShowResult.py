@@ -1,23 +1,24 @@
 import pygame
 from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton, ConfirmButton
-from game_lib.parameters import BACKGROUND_COLOR, FPS
+from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
-EXPECTED = 0.1
 
 class Celebration():
     width = 400
     height = 200
 
     def __init__(self, pos, expected_value):
-        self.image = pygame.transform.scale(pygame.image.load('data/celebration.png'),
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/celebration.png'),
                                             (self.width, self.height))
         self.image_rect = self.image.get_rect()
         self.image_rect.center = pos
 
         if expected_value < 0.5:
-            self.text = pygame.font.SysFont('timesnewroman', 50).render("Alice Wins!", True, pygame.Color("black"))
+            self.text = pygame.font.SysFont('timesnewroman', 50).render(
+                "Alice Wins!", True, pygame.Color("black"))
         else:
-            self.text = pygame.font.SysFont('timesnewroman', 50).render("Bob Wins!", True, pygame.Color("black"))
+            self.text = pygame.font.SysFont('timesnewroman', 50).render(
+                "Bob Wins!", True, pygame.Color("black"))
 
         self.text_rect = self.text.get_rect()
         self.text_rect.center = (pos[0], pos[1] + 100)
@@ -27,6 +28,7 @@ class Celebration():
     def draw(self, surface):
         surface.blit(self.image, self.image_rect.topleft)
         surface.blit(self.text, self.text_rect.topleft)
+
 
 class Message():
     width = 400
@@ -38,7 +40,7 @@ class Message():
         self.text_rect = self.text.get_rect()
         self.text_rect.center = pos
 
-        self.image = pygame.transform.scale(pygame.image.load('data/frame.png'),
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/frame.png'),
                                             (self.width, self.height))
         self.image_rect = self.image.get_rect()
         self.image_rect.center = pos
@@ -50,9 +52,10 @@ class Message():
         surface.blit(self.image, self.image_rect.topleft)
 
 
-
 class ShowResult():
     def __init__(self, data):
+        self.data = data
+
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
         self.clock = pygame.time.Clock()
@@ -62,14 +65,18 @@ class ShowResult():
 
         cx, cy = self.screen_rect.center
 
-        #display objects
-        self.Celebration = Celebration((cx, Celebration.height/2), EXPECTED)
-        self.Message = Message((cx, cy + Message.height/4), EXPECTED)
+        # display objects
+        self.Celebration = Celebration(
+            (cx, Celebration.height/2), self.data['ExpectedValue'])
+        self.Message = Message((cx, cy + Message.height/4),
+                               self.data['ExpectedValue'])
 
         # buttons
         self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))
-        self.BackButton = BackButton((BackButton.width / 2 + 20, BackButton.height / 2 + 20))
-        self.CircuitButton = CircuitButton((3 * CircuitButton.width / 2 + 40, CircuitButton.height / 2 + 20))
+        self.BackButton = BackButton(
+            (BackButton.width / 2 + 20, BackButton.height / 2 + 20))
+        self.CircuitButton = CircuitButton(
+            (3 * CircuitButton.width / 2 + 40, CircuitButton.height / 2 + 20))
 
         self.tutorial_on = False
         # self.TutorialBlocks = [TutorialBlock()]
@@ -123,4 +130,3 @@ class ShowResult():
 
             self.render()
             self.clock.tick(self.fps)
-

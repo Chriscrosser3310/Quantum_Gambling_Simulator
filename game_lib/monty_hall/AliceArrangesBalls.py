@@ -1,7 +1,7 @@
 import pygame
 import numpy
 from game_lib.monty_hall.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
-from game_lib.parameters import BACKGROUND_COLOR, FPS
+from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
 class Ball():
     
@@ -15,7 +15,7 @@ class Ball():
         self.pos_list = pos_list
         self.prob_dist = prob_dist
          
-        self.image = pygame.transform.scale(pygame.image.load('data/prize.png').convert_alpha(), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/prize.png').convert_alpha(), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = self.pos_list[0]
@@ -43,9 +43,9 @@ class CheckBox():
         self.checked = False
         
         
-        self.images = [pygame.transform.scale(pygame.image.load('data/unchecked_checkbox.png'), 
+        self.images = [pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/unchecked_checkbox.png'), 
                                               (self.width, self.height)),
-                       pygame.transform.scale(pygame.image.load('data/checked_checkbox.png'), 
+                       pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/checked_checkbox.png'), 
                                               (self.width, self.height))]
         self.rect = self.images[0].get_rect()
         self.rect.center = pos
@@ -79,7 +79,7 @@ class Door():
     height = 200   
     
     def __init__(self, pos):   
-        self.image = pygame.transform.scale(pygame.image.load('data/door.png'), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/door.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = pos
@@ -166,6 +166,8 @@ class AliceArrangesBalls():
         Get a reference to the screen (created in main); define necessary
         attributes; and create our thing.
         """
+        self.data = data
+        
         self.screen = pygame.display.get_surface()
         self.screen_rect = self.screen.get_rect()
         self.clock = pygame.time.Clock()
@@ -177,9 +179,9 @@ class AliceArrangesBalls():
         self.checked_cb = None
         
         cx, cy = self.screen_rect.center
-        self.DoorBars = [DoorBar((cx/2, cy), 1/3),
-                         DoorBar((cx, cy), 1/3),
-                         DoorBar((3*cx/2, cy), 1/3)]
+        self.DoorBars = [DoorBar((cx/2, cy), self.data['BallProbDist'][0]),
+                         DoorBar((cx, cy), self.data['BallProbDist'][1]),
+                         DoorBar((3*cx/2, cy), self.data['BallProbDist'][2])]
         
         self.Doors = [Door((cx/2, cy)), 
                       Door((cx, cy)),
@@ -322,6 +324,7 @@ class AliceArrangesBalls():
             
             if self.ConfirmButton.click:
                 self.ConfirmButton.update_click()
+                self.data['BallProbDist'] = [db.prob for db in self.DoorBars]
                 self.next_stage = True 
             elif self.BackButton.click:
                 self.BackButton.update_click()

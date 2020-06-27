@@ -3,6 +3,7 @@ import numpy
 from game_lib.monty_hall.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
 from game_lib.parameters import BACKGROUND_COLOR, FPS
 
+
 class Caption:
     width = 800
     height = 100
@@ -59,7 +60,7 @@ class CheckBob:
         if self.click:
             self.checked = not self.checked
             self.click = False
-            self.data["bob_choice"] = -1
+            self.data["BobChosenDoor"] = -1
 
     def force_unchecked(self):
         self.checked = False
@@ -98,7 +99,8 @@ class BobChoosesDoor:
             self.Doors[i].bob = self.CheckBobs[i]
 
         self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))
-        self.BackButton = BackButton((BackButton.width / 2 + 20, BackButton.height / 2 + 20))
+        self.BackButton = BackButton(
+            (BackButton.width / 2 + 20, BackButton.height / 2 + 20))
 
         self.tutorial_on = False
         # self.TutorialBlocks = [TutorialBlock()]
@@ -153,13 +155,13 @@ class BobChoosesDoor:
                 if cb != self.checked_cb:
                     cb.force_unchecked()
                 else:
-                    self.data["bob_choice"] = i
+                    self.data["BobChosenDoor"] = i
                 cb.update_click()
 
             if self.ConfirmButton.click:
                 self.ConfirmButton.update_click()
                 # continue only when bob's choice has been set
-                if self.data["bob_choice"] != -1:
+                if self.data["BobChosenDoor"] != -1:
                     self.next_stage = True
             elif self.BackButton.click:
                 self.BackButton.update_click()
