@@ -159,7 +159,7 @@ class BobSwitchesDoor():
     def event_loop(self):
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
+            if event.type == pygame.QUIT:
                 self.quit = True
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
