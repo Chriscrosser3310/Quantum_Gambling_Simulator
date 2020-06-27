@@ -19,7 +19,7 @@ class Door:
 
     def __init__(self, pos, bob):
         self.bob = bob
-        self.image = pygame.transform.scale(pygame.image.load('assets/door.png'),
+        self.image = pygame.transform.scale(pygame.image.load('assets/images/door.png'),
                                             (self.width, self.height))
         self.rect = self.image.get_rect()
         self.rect.center = pos
@@ -35,16 +35,16 @@ class Door:
 
 
 class CheckBob:
-    width = 50
-    height = 50
+    width = 150
+    height = 150
 
     def __init__(self, pos, data):
         self.data = data
         self.checked = False
 
-        self.images = [pygame.transform.scale(pygame.image.load('assets/b_letter.png'),
+        self.images = [pygame.transform.scale(pygame.image.load('assets/images/bob.jpg'),
                                               (self.width, self.height)),
-                       pygame.transform.scale(pygame.image.load('assets/b_letter.png'),
+                       pygame.transform.scale(pygame.image.load('assets/images/bob.jpg'),
                                               (0, 0))]
         self.rect = self.images[0].get_rect()
         self.rect.center = pos
@@ -91,9 +91,9 @@ class BobChoosesDoor:
                       Door((cx, cy), None),
                       Door((3 * cx / 2, cy), None)]
 
-        self.CheckBobs = [CheckBob((cx / 2, cy - Door.height / 2 - 20), data),
-                          CheckBob((cx, cy - Door.height / 2 - 20), data),
-                          CheckBob((3 * cx / 2, cy - Door.height / 2 - 20), data)]
+        self.CheckBobs = [CheckBob((cx / 2, cy - Door.height / 2 - 80), data),
+                          CheckBob((cx, cy - Door.height / 2 - 80), data),
+                          CheckBob((3 * cx / 2, cy - Door.height / 2 - 80), data)]
 
         for i in range(0, 3):
             self.Doors[i].bob = self.CheckBobs[i]
