@@ -64,7 +64,7 @@ class ShowResult():
 
         #display objects
         self.Celebration = Celebration((cx, Celebration.height/2), EXPECTED)
-        self.Message = Message((cx, cy + Message.height/2), EXPECTED)
+        self.Message = Message((cx, cy + Message.height/4), EXPECTED)
 
         # buttons
         self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))

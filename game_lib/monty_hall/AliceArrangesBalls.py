@@ -194,7 +194,7 @@ class AliceArrangesBalls():
                             (3*cx/2, cy - Door.height/4)], 
                             [1/3, 1/3, 1/3])
         
-        self.ConfirmButton = ConfirmButton((cx, cy + Door.height))
+        self.ConfirmButton = ConfirmButton((cx, cy * 8 / 5))
         self.BackButton = BackButton((BackButton.width/2 + 20, BackButton.height/2 + 20))
         self.CircuitButton = CircuitButton((3*CircuitButton.width/2 + 40, CircuitButton.height/2 + 20))
         
