@@ -1,23 +1,28 @@
 import pygame
 import qiskit
 import matplotlib.backends.backend_agg as agg
+import matplotlib.pyplot as plt
+import gc
 from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
 from game_lib.parameters import BACKGROUND_COLOR, FPS
+from numpy import arctan, sqrt, pi
 
 class CircuitDisplay():
     
     height = 600
     
     def __init__(self, pos):
-        self.qr = qiskit.QuantumRegister(7)
-        self.cr = qiskit.ClassicalRegister(2)
+        self.qr = qiskit.QuantumRegister(6)
+        self.cr = qiskit.ClassicalRegister(1)
         self.qc = qiskit.QuantumCircuit(self.qr, self.cr)
-        self.update_image()
+        self.previous_gates = []
+        self.update_circuit_0([1/3, 1/3, 1/3])
         self.rect = self.image.get_rect()
         self.rect.center = pos
         self.clickable = False
-    
+        
+        
     def update_image(self):
         fig = self.qc.draw(output = 'mpl')
         canvas = agg.FigureCanvasAgg(fig)
@@ -27,9 +32,47 @@ class CircuitDisplay():
         size = canvas.get_width_height()
         raw_image = pygame.image.fromstring(raw_data, size, "RGB")
         self.image = pygame.transform.scale(raw_image, (int(size[0]*self.height/size[1]), self.height))
+        fig.clear()
+        plt.close(fig)
+        gc.collect()
         
-    def update_circuit(self):
-        self.qc.x([0,1,2,3,4,5,6])
+    def update_circuit_0(self, prob_dist):
+        
+        self.qc.data = self.previous_gates
+        
+        p00, p01, p10 = prob_dist
+        
+        if p00 == 1:
+            self.qc.i(0)
+            self.qc.i(0)
+            self.qc.i(0)
+            self.qc.i(0)
+        elif p01 == 1:
+            self.qc.x(0)
+            self.qc.i(0)
+            self.qc.i(0)
+            self.qc.i(0)
+        elif p10 == 1:
+            self.qc.x(1)
+            self.qc.i(1)
+            self.qc.i(1)
+            self.qc.i(1)
+        
+        else:
+            angle1 = arctan(sqrt(p01)/sqrt(p00 + p10))*2
+            angle2 = arctan(sqrt(p10)/sqrt(p00))*2
+            
+            self.qc.u3(angle1,0,0,0)
+            self.qc.x(0)
+            self.qc.cu3(angle2,0,0,0,1)
+            self.qc.x(0)
+        
+        self.qc.barrier(self.qr)
+        self.update_image()
+    
+    def update_circuit_1(self):
+        
+        self.qc.data = self.previous_gates
 
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
@@ -90,6 +133,7 @@ class MontyHall():
             current_stage.main_loop()
             if current_stage.next_stage == True:
                 self.stage_index += 1
+                self.CircuitDisplay.previous_gates = self.CircuitDisplay.qc.data
                 if self.stage_index == len(self.stages):
                     self.back = True
             elif current_stage.back == True:
@@ -97,16 +141,18 @@ class MontyHall():
             elif current_stage.quit == True:
                 self.quit = True
             elif current_stage.show_circuit == True:
+                if self.stage_index == 0:
+                    self.CircuitDisplay.update_circuit_0([db.prob for db in current_stage.DoorBars])
+                elif self.stage_index == 1:
+                    self.CircuitDisplay.update_circuit_1()
                 while (current_stage.show_circuit and not (self.quit or self.back)):
                     self.event_loop()
-                    
                     if self.BackButton.click:
                         self.BackButton.update_click()
                         self.back = True
                     elif self.CircuitButton.click:
                         self.CircuitButton.update_click()
                         current_stage.show_circuit = False
-                    
                     self.render()
                     self.clock.tick(self.fps)
             else:
