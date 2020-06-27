@@ -62,9 +62,9 @@ class CircuitDisplay():
             angle1 = arctan(sqrt(p01)/sqrt(p00 + p10))*2
             angle2 = arctan(sqrt(p10)/sqrt(p00))*2
             
-            self.qc.u3(angle1,0,0,0)
+            self.qc.ry(angle1, 0)
             self.qc.x(0)
-            self.qc.cu3(angle2,0,0,0,1)
+            self.qc.cry(angle2, 0, 1)
             self.qc.x(0)
         
         self.qc.barrier(self.qr)
