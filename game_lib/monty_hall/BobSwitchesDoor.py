@@ -149,7 +149,7 @@ class DoorBar():
 class BobSwitchesDoor():
     
     #expect receiving an int(0,1,2) represents which Door Alice opens
-    def __init__(self, AliceChoice):
+    def __init__(self, data, AliceChoice):
 
         self.data = data
         self.Alice = AliceChoice
