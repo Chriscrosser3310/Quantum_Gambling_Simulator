@@ -90,8 +90,17 @@ class MontyHall():
         
         self.keys = pygame.key.get_pressed()
         
-        self.stages = [AliceArrangesBalls(), ShowResult()]
+        self.data = {'BallProbDist': [1/3, 1/3, 1/3],
+                     'BobChosenDoor': 0,
+                     'AliceOpenedDoor': 0,
+                     'SwitchProbDist': [1/2, 1/2],
+                     'ExpectedValue': 0.0}
+        
+        self.stages = [AliceArrangesBalls(self.data), 
+                       ShowResult(self.data)]
+        
         self.stage_index = 0
+        
         self.quit = False
         self.back = False
         
@@ -158,4 +167,6 @@ class MontyHall():
                     self.clock.tick(self.fps)
             else:
                 raise ValueError('Stage quits without proceeding')
+        
+        #print(self.data)
     

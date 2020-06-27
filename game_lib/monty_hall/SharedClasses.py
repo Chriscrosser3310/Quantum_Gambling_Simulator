@@ -1,4 +1,5 @@
 import pygame
+from game_lib.parameters import IMAGE_PATH
 
 class ConfirmButton():
     
@@ -6,7 +7,7 @@ class ConfirmButton():
     height = 80
     
     def __init__(self, pos): 
-        self.image = pygame.transform.scale(pygame.image.load('data/confirm_button.png'), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/confirm_button.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = pos
@@ -32,7 +33,7 @@ class BackButton():
     height = 50
     
     def __init__(self, pos): 
-        self.image = pygame.transform.scale(pygame.image.load('data/back_button.png'), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/back_button.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = pos
@@ -58,7 +59,7 @@ class CircuitButton():
     height = 50
     
     def __init__(self, pos): 
-        self.image = pygame.transform.scale(pygame.image.load('data/qiskit.png'), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/qiskit.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = pos
