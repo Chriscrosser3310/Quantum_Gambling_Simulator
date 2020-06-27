@@ -19,7 +19,7 @@ class Door:
 
     def __init__(self, pos, bob):
         self.bob = bob
-        self.image = pygame.transform.scale(pygame.image.load('data/door.png'),
+        self.image = pygame.transform.scale(pygame.image.load('assets/door.png'),
                                             (self.width, self.height))
         self.rect = self.image.get_rect()
         self.rect.center = pos
@@ -42,9 +42,9 @@ class CheckBob:
         self.data = data
         self.checked = False
 
-        self.images = [pygame.transform.scale(pygame.image.load('data/b_letter.png'),
+        self.images = [pygame.transform.scale(pygame.image.load('assets/b_letter.png'),
                                               (self.width, self.height)),
-                       pygame.transform.scale(pygame.image.load('data/b_letter.png'),
+                       pygame.transform.scale(pygame.image.load('assets/b_letter.png'),
                                               (0, 0))]
         self.rect = self.images[0].get_rect()
         self.rect.center = pos

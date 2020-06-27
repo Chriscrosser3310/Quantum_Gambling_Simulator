@@ -12,7 +12,7 @@ pygame.display.set_caption(CAPTION)
 #flags = DOUBLEBUF | HWSURFACE | FULLSCREEN
 #pygame.display.set_mode(SCREEN_SIZE, flags)
 pygame.display.set_mode(SCREEN_SIZE)
-#pygame.mixer.music.load("data/mightbebgm.mp3") 
+# pygame.mixer.music.load("assets/mightbebgm.mp3")
 #pygame.mixer.music.play(-1, 0.0)
 Menu().main_loop()
 pygame.quit()

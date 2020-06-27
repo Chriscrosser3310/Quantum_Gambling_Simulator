@@ -98,7 +98,7 @@ class MontyHall():
                      'SwitchProbDist': [1/2, 1/2],
                      'ExpectedValue': 0.0}
 
-        self.stages = [BobChoosesDoor(data), AliceArrangesBalls(self.data),
+        self.stages = [BobChoosesDoor(self.data), AliceArrangesBalls(self.data),
                        ShowResult(self.data)]
 
         self.stage_index = 0
