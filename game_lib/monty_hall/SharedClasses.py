@@ -88,11 +88,13 @@ class ConfirmButton():
     width = 80
     height = 80
     
-    def __init__(self, pos): 
+    def __init__(self): 
         self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/confirm_button.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
-        self.rect.center = pos
+        
+        cx, cy = pygame.display.get_surface().get_rect().center
+        self.rect.center = (cx, cy * 9 / 5)
         
         self.click = False
         
@@ -113,11 +115,12 @@ class BackButton():
     width = 50
     height = 50
     
-    def __init__(self, pos): 
+    def __init__(self): 
+        
         self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/back_button.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
-        self.rect.center = pos
+        self.rect.center = (BackButton.width/2 + 20, BackButton.height/2 + 20)
         
         self.click = False
         
@@ -138,11 +141,12 @@ class CircuitButton():
     width = 50
     height = 50
     
-    def __init__(self, pos): 
+    def __init__(self):
+        
         self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/qiskit.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
-        self.rect.center = pos
+        self.rect.center = (3*CircuitButton.width/2 + 40, CircuitButton.height/2 + 20)
         
         self.click = False
         

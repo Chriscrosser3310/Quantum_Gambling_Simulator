@@ -27,7 +27,7 @@ class CircuitDisplay():
         
         self.pos = (self.screen_rect.center[0], self.screen_rect.center[1])
         
-        self.qc = qiskit.QuantumCircuit(8, 1)
+        self.qc = None
         self.qc_list = [qiskit.QuantumCircuit(2, name = 'Alice arranges ball'),
                         qiskit.QuantumCircuit(2, name = 'Bob chooses door'),
                         qiskit.QuantumCircuit(2, name = 'Alice opens door'),
@@ -166,28 +166,38 @@ class CircuitDisplay():
     
     def update_circuit_4(self):
         
-        self.qc = self.qc.compose(self.qc_list[0], [0, 1])
-        self.qc = self.qc.compose(self.qc_list[1], [2, 3])
-        self.qc = self.qc.compose(self.qc_list[2], [4, 5])
-        self.qc = self.qc.compose(self.qc_list[3], [6])
-        self.qc.barrier()
+        qc = qiskit.QuantumCircuit(8, 1)
         
-        self.qc.x([0,2,3,4])
-        self.qc.mcx([0,1,2,3], 7)
-        self.qc.mcx([2,3,4,5], 7)
-        self.qc.x([1,2,5])
-        self.qc.mcx([0,1,2,3], 7)
-        self.qc.x([0])
-        self.qc.mcx([2,3,4,5], 7)
-        self.qc.x([2,3,4])
-        self.qc.mcx([0,1,2,3], 7)
-        self.qc.mcx([2,3,4,5], 7)
-        self.qc.x([1,2,5])
-        self.qc.cx(6,7)
-        self.qc.barrier()
-        self.qc.measure(7,0)
+        qc = qc.compose(self.qc_list[0], [0, 1])
+        qc = qc.compose(self.qc_list[1], [2, 3])
+        qc = qc.compose(self.qc_list[2], [4, 5])
+        qc = qc.compose(self.qc_list[3], [6])
+        qc.barrier()
+        
+        qc.x([0,4,5,2])
+        qc.mcx([0,1,4,5], 7)
+        qc.mcx([4,5,2,3], 7)
+        qc.x([1,4,3])
+        qc.mcx([0,1,4,5], 7)
+        qc.x([0])
+        qc.mcx([4,5,2,3], 7)
+        qc.x([4,5,2])
+        qc.mcx([0,1,4,5], 7)
+        qc.mcx([4,5,2,3], 7)
+        qc.x([1,4,3])
+        qc.cx(6,7)
+        qc.barrier()
+        qc.measure(7,0)
+        
+        self.qc = qc
         
         self.update_image(self.qc)
+        
+    def calculate_result(self):
+        if self.qc != None:
+            pass
+        else:
+            raise ValueError('CircuitDisplay.qc not completed')
             
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
@@ -224,10 +234,8 @@ class MontyHall():
         cx, cy = self.screen_rect.center
         self.CircuitDisplay = CircuitDisplay(self.data)
 
-        self.BackButton = BackButton(
-            (BackButton.width/2 + 20, BackButton.height/2 + 20))
-        self.CircuitButton = CircuitButton(
-            (3*CircuitButton.width/2 + 40, CircuitButton.height/2 + 20))
+        self.BackButton = BackButton()
+        self.CircuitButton = CircuitButton()
 
     def update_circuit(self):
         if self.stage_index == 0:
@@ -270,17 +278,15 @@ class MontyHall():
     def main_loop(self):
         current_stage = None
         while not (self.quit or self.back):
-            for k, v in self.data.items():
-                print(k, v)
-            print()
             if self.stages[self.stage_index] != type(current_stage):
                 current_stage = self.stages[self.stage_index](self.data)
             current_stage.main_loop()
             if current_stage.next_stage == True:
-                self.update_circuit()
-                self.stage_index += 1
-                if self.stage_index == len(self.stages):
+                if self.stage_index == len(self.stages) - 1:
                     self.back = True
+                else:
+                    self.update_circuit()
+                    self.stage_index += 1
             elif current_stage.back == True:
                 self.back = True
             elif current_stage.quit == True:
