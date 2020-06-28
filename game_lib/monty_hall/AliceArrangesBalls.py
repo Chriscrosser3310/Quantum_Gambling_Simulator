@@ -16,12 +16,11 @@ class Ball():
         self.pos_list = pos_list
         self.prob_dist = prob_dist
          
-        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/ball.png').convert_alpha(), 
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/ball.png'), 
                                             (self.width, self.height))     
         self.rect = self.image.get_rect()
         self.rect.center = self.pos_list[0]
         
-        self.clickable = False
         
     def update_distribution(self, prob_dist):
         self.prob_dist = prob_dist
@@ -51,7 +50,6 @@ class CheckBox():
         self.rect = self.images[0].get_rect()
         self.rect.center = pos
         
-        self.clickable = True
         self.click = False
         
     
@@ -113,7 +111,7 @@ class AliceArrangesBalls():
         self.Ball = Ball([(cx/2, cy - Door.height/4), 
                             (cx, cy - Door.height/4), 
                             (3*cx/2, cy - Door.height/4)], 
-                            [1/3, 1/3, 1/3])
+                            self.data['BallProbDist'])
         
         self.ConfirmButton = ConfirmButton((cx, cy * 9 / 5))
         self.BackButton = BackButton((BackButton.width/2 + 20, BackButton.height/2 + 20))

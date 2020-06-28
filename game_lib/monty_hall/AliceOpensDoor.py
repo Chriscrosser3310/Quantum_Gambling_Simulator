@@ -85,6 +85,8 @@ class AliceOpensDoor:
         self.DoorAlices = [DoorAlice((cx / 2, cy), self.data),
                            DoorAlice((cx, cy), self.data),
                            DoorAlice((3 * cx / 2, cy), self.data)]
+        
+        self.DoorAlices[self.data['BobChosenDoor']].chosen = True
 
         self.ConfirmButton = ConfirmButton((cx, cy * 9 / 5))
         self.CircuitButton = CircuitButton((3 * CircuitButton.width / 2 + 40, CircuitButton.height / 2 + 20))
@@ -138,8 +140,6 @@ class AliceOpensDoor:
 
 
     def main_loop(self):
-        
-        self.DoorAlices[self.data['BobChosenDoor']].chosen = True
         
         while not (self.quit or self.next_stage or self.back or self.show_circuit):
             self.event_loop()           

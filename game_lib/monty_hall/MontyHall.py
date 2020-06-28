@@ -7,6 +7,7 @@ from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
 from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.AliceOpensDoor import AliceOpensDoor
+from game_lib.monty_hall.BobSwitchesDoor import BobSwitchesDoor
 from game_lib.monty_hall.ShowResult import ShowResult
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 from numpy import arctan, sqrt, pi
@@ -15,11 +16,16 @@ from copy import deepcopy
 
 class CircuitDisplay():
 
-    wire_height = 70
+    wire_height = 200
 
-    def __init__(self, pos, initial_data):
+    def __init__(self, data):
         
-        self.pos = pos
+        self.data = data
+        
+        self.screen = pygame.display.get_surface()
+        self.screen_rect = self.screen.get_rect()
+        
+        self.pos = (self.screen_rect.center[0], self.screen_rect.center[1])
         
         self.qc = qiskit.QuantumCircuit(8, 1)
         self.qc_list = [qiskit.QuantumCircuit(2, name = 'Alice arranges ball'),
@@ -30,9 +36,9 @@ class CircuitDisplay():
         # if circuit is not available
         self.nc_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/question.png'), (400, 300))
         
-        self.update_circuit_0(initial_data)
+        self.update_circuit_0()
         self.rect = self.image.get_rect()
-        self.rect.center = pos
+        self.rect.center = self.pos
         self.clickable = False
 
     def update_image(self, qc):
@@ -43,23 +49,29 @@ class CircuitDisplay():
         raw_data = renderer.tostring_rgb()
         size = canvas.get_width_height()
         raw_image = pygame.image.fromstring(raw_data, size, "RGB")
-        self.image = pygame.transform.scale(
-            raw_image, (int(size[0]*self.wire_height*qc.width()/size[1]), self.wire_height*qc.width()))
+        image_size = [int(size[0]*self.wire_height*qc.width()/size[1]), self.wire_height*qc.width()]
+        if image_size[0] > (self.screen.get_size()[0] - 200):
+            image_size[0] = (self.screen.get_size()[0] - 200)
+            image_size[1] = image_size[0] * size[1]//size[0]
+        if image_size[1] > (self.screen.get_size()[1]):
+            image_size[1] = (self.screen.get_size()[1])
+            image_size[0] = image_size[1] * size[0]//size[1]
+        self.image = pygame.transform.scale(raw_image, image_size)
         self.rect = self.image.get_rect()
         self.rect.center = self.pos
         fig.clear()
         plt.close(fig)
         gc.collect()
 
-    def update_circuit_0(self, data):
+    def update_circuit_0(self):
         
-        prob_dist = data['BallProbDist']
+        prob_dist = self.data['BallProbDist']
         
         self.qc_list[0].data.clear()
         
         p00, p01, p10 = prob_dist
         if p00 == 1:
-            pass
+            self.qc_list[0].i(0)
         elif p01 == 1:
             self.qc_list[0].x(0)
         elif p10 == 1:
@@ -78,9 +90,9 @@ class CircuitDisplay():
         
         self.update_image(qc)
 
-    def update_circuit_1(self, data):
+    def update_circuit_1(self):
         
-        choice = data['BobChosenDoor']
+        choice = self.data['BobChosenDoor']
         
         self.qc_list[1].data.clear()
         
@@ -90,7 +102,7 @@ class CircuitDisplay():
             self.rect.center = self.pos
             return
         elif choice == 0:
-            pass
+            self.qc_list[1].i(0)
         elif choice == 1:
             self.qc_list[1].x(0)
         elif choice == 2:
@@ -103,9 +115,9 @@ class CircuitDisplay():
         
         self.update_image(qc)
         
-    def update_circuit_2(self, data):
+    def update_circuit_2(self):
         
-        choice = data['AliceOpenedDoor']
+        choice = self.data['AliceOpenedDoor']
         self.qc_list[2].data.clear()
         
         if choice == -1:
@@ -114,7 +126,7 @@ class CircuitDisplay():
             self.rect.center = self.pos
             return
         elif choice == 0:
-            pass
+            self.qc_list[2].i(0)
         elif choice == 1:
             self.qc_list[2].x(0)
         elif choice == 2:
@@ -128,7 +140,55 @@ class CircuitDisplay():
         
         self.update_image(qc)
 
-
+    def update_circuit_3(self):
+        
+        prob_dist = self.data['SwitchProbDist']
+        self.qc_list[3].data.clear()
+        
+        p0, p1 = prob_dist
+        
+        if p0 == 1:
+            self.qc_list[3].i(0)
+        elif p1 == 1:
+            self.qc_list[3].x(0)
+        else:
+            angle = arctan(sqrt(p1)/sqrt(p0))*2
+            self.qc_list[3].ry(angle, 0)
+        
+        qc = qiskit.QuantumCircuit(7)
+        qc = qc.compose(self.qc_list[0].to_gate(), [0, 1])
+        qc = qc.compose(self.qc_list[1], [2, 3])
+        qc = qc.compose(self.qc_list[2].to_gate(), [4, 5])
+        qc = qc.compose(self.qc_list[3], [6])
+        qc.barrier()
+        
+        self.update_image(qc)
+    
+    def update_circuit_4(self):
+        
+        self.qc = self.qc.compose(self.qc_list[0], [0, 1])
+        self.qc = self.qc.compose(self.qc_list[1], [2, 3])
+        self.qc = self.qc.compose(self.qc_list[2], [4, 5])
+        self.qc = self.qc.compose(self.qc_list[3], [6])
+        self.qc.barrier()
+        
+        self.qc.x([0,2,3,4])
+        self.qc.mcx([0,1,2,3], 7)
+        self.qc.mcx([2,3,4,5], 7)
+        self.qc.x([1,2,5])
+        self.qc.mcx([0,1,2,3], 7)
+        self.qc.x([0])
+        self.qc.mcx([2,3,4,5], 7)
+        self.qc.x([2,3,4])
+        self.qc.mcx([0,1,2,3], 7)
+        self.qc.mcx([2,3,4,5], 7)
+        self.qc.x([1,2,5])
+        self.qc.cx(6,7)
+        self.qc.barrier()
+        self.qc.measure(7,0)
+        
+        self.update_image(self.qc)
+            
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
 
@@ -147,13 +207,14 @@ class MontyHall():
         self.data = {'BallProbDist': [1/3, 1/3, 1/3],
                      'BobChosenDoor': -1,
                      'AliceOpenedDoor': -1,
-                     'SwitchProbDist': [1/2, 1/2],
+                     'SwitchProbDist': [1, 0],
                      'ExpectedValue': 0.0}
 
-        self.stages = [AliceArrangesBalls(self.data),
-                       BobChoosesDoor(self.data),
-                       AliceOpensDoor(self.data),
-                       ShowResult(self.data)]
+        self.stages = [AliceArrangesBalls,
+                       BobChoosesDoor,
+                       AliceOpensDoor,
+                       BobSwitchesDoor,
+                       ShowResult]
 
         self.stage_index = 0
 
@@ -161,7 +222,7 @@ class MontyHall():
         self.back = False
 
         cx, cy = self.screen_rect.center
-        self.CircuitDisplay = CircuitDisplay((cx, cy), self.data)
+        self.CircuitDisplay = CircuitDisplay(self.data)
 
         self.BackButton = BackButton(
             (BackButton.width/2 + 20, BackButton.height/2 + 20))
@@ -170,11 +231,15 @@ class MontyHall():
 
     def update_circuit(self):
         if self.stage_index == 0:
-            self.CircuitDisplay.update_circuit_0(self.data)
+            self.CircuitDisplay.update_circuit_0()
         elif self.stage_index == 1:
-            self.CircuitDisplay.update_circuit_1(self.data)
+            self.CircuitDisplay.update_circuit_1()
         elif self.stage_index == 2:
-            self.CircuitDisplay.update_circuit_2(self.data)
+            self.CircuitDisplay.update_circuit_2()
+        elif self.stage_index == 3:
+            self.CircuitDisplay.update_circuit_3()
+        elif self.stage_index == 4:
+            self.CircuitDisplay.update_circuit_4()
                 
     def event_loop(self):
         """
@@ -203,9 +268,13 @@ class MontyHall():
         pygame.display.update()
 
     def main_loop(self):
-
+        current_stage = None
         while not (self.quit or self.back):
-            current_stage = self.stages[self.stage_index]
+            for k, v in self.data.items():
+                print(k, v)
+            print()
+            if self.stages[self.stage_index] != type(current_stage):
+                current_stage = self.stages[self.stage_index](self.data)
             current_stage.main_loop()
             if current_stage.next_stage == True:
                 self.update_circuit()
