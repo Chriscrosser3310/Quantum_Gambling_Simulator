@@ -4,7 +4,7 @@ import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 import gc
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
-from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
+from game_lib.SharedClasses import BackButton, CircuitButton
 from game_lib.prisoner_dilemma.StartStage import StartStage
 
 from numpy import arctan, sqrt, pi
@@ -36,10 +36,8 @@ class PrisonerDilemma:
         cx, cy = self.screen_rect.center
         # self.CircuitDisplay = CircuitDisplay(self.data)
 
-        self.BackButton = BackButton(
-            (BackButton.width / 2 + 20, BackButton.height / 2 + 20))
-        self.CircuitButton = CircuitButton(
-            (3 * CircuitButton.width / 2 + 40, CircuitButton.height / 2 + 20))
+        self.BackButton = BackButton()
+        self.CircuitButton = CircuitButton()
 
     def event_loop(self):
         """

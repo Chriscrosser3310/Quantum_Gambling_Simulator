@@ -43,9 +43,8 @@ class Menu():
         self.keys = pygame.key.get_pressed()
 
         cx, cy = self.screen_rect.center
-        self.StartButtons = [StartButton('Monty Hall', MontyHall, (cx, cy - 50)), StartButton('Prisoner Dilemma',
-                                                                                              PrisonerDilemma,
-                                                                                              (cx, cy))]
+        self.StartButtons = [StartButton('Monty Hall', MontyHall, (cx, cy - 50)), 
+                             StartButton('Prisoner Dilemma', PrisonerDilemma, (cx, cy))]
 
         self.quit = False
 

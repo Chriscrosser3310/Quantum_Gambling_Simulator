@@ -1,5 +1,5 @@
 import pygame
-from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton, ConfirmButton
+from game_lib.SharedClasses import BackButton, CircuitButton, ConfirmButton
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
 

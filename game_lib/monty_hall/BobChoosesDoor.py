@@ -1,6 +1,6 @@
 import pygame
 import numpy
-from game_lib.monty_hall.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
+from game_lib.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
 

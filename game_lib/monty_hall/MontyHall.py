@@ -3,7 +3,7 @@ import qiskit
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 import gc
-from game_lib.monty_hall.SharedClasses import BackButton, CircuitButton
+from game_lib.SharedClasses import BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
 from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.AliceOpensDoor import AliceOpensDoor
