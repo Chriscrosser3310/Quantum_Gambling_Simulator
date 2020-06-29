@@ -225,8 +225,8 @@ class MontyHall():
                        BobChoosesDoor,
                        AliceOpensDoor,
                        BobSwitchesDoor,
-                       ShowResult,
-                       RunOnRealQC]
+                       RunOnRealQC,
+                       ShowResult,]
 
         self.stage_index = 0
 
