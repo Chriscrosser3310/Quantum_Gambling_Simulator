@@ -1,5 +1,5 @@
 import pygame
-import numpy
+import numpy as np
 from game_lib.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock, Knob
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 
@@ -32,33 +32,37 @@ class GBButton():
 
         self.angle = angle
         #setting the ratio of size
-        based on angle
-        self.goodRatio = 2*(self.angle/180)
-        self.badRatio = 2*(1-self.angle/180)
+        #based on angle
+        #self.goodRatio = 2*(self.angle/180)
+        #self.badRatio = 2*(1-self.angle/180)
+
+        self.Ratio = [2*(self.angle/180),2*(1-self.angle/180)]
         self.color = color
         self.text = text
+        self.pos = pos
         
         font = pygame.font.SysFont('timesnewroman',30*self.Ratio)
-        text = font.render(self.text, 1, (0,0,0))
+        self.text0 = font.render(self.text, 1, (0,0,0))
 
 
     def draw(self, surface):
-        if self.text == 'GOOD!'
-            self.rect = pygame.Rect((0,0), outline,(self.goodRatio*self.width, self.goodRatio*self.height))
+        if self.text == 'GOOD!':
+            self.rect = pygame.Rect((0,0), (self.Ratio[0]*self.width, self.Ratio[0]*self.height))
+
         elif self.text == 'BAD!':
-            self.rect = pygame.Rect((0,0), outline,(self.badRatio*self.width, self.badRatio*self.height))
+            self.rect = pygame.Rect((0,0), (self.Ratio[1]*self.width, self.Ratio[1]*self.height))
 
 
-        self.rect.bottomleft = (pos[0]-self.width/2, pos[1]+self.height/2)
+        self.rect.bottomleft = (self.pos[0]-self.width/2, self.pos[1]+self.height/2)
         surface.fill(pygame.Color(self.color), self.rect)
-        surface.blit(text, (self.rect.center-text.get_width()/2, self.rect.center-text.get_height()/2))
+        surface.blit(self.text0, (self.rect.center-self.text0.get_width()/2, self.rect.center-self.text0.get_height()/2))
         
             
 class AliceStage:
 
     def __init__(self, data):
 
-        self.data = data:
+        self.data = data
 
             self.screen = pygame.display.get_suface()
             self.screen_rect = self.screen.get_rect()
@@ -75,7 +79,7 @@ class AliceStage:
             
             self.officer = Officer((2*cx/3, cy-150))
             
-            self.Knobs = [Knob((50, cy/2-60),numpy.pi/2), #theta
+            self.Knobs = [Knob((50, cy/2-60),np.pi/2), #theta
                           Knob((50, cy/2+60),0)]          #phi  
             
             self.GBButtons = [GBButton((2*cx/3+75, cy+50),self.Knobs[0].angle, 'red', 'GOOD!'),
@@ -129,7 +133,7 @@ class AliceStage:
                 k.draw(self.screen)
             
             for i in self.GBButtons:
-                draw(self.screen)
+                i.draw(self.screen)
 
             self.officer.draw(self.screen)
             self.ConfirmButton.draw(self.screen)
@@ -161,6 +165,13 @@ class AliceStage:
 
                 self.render()
                 self.clock.tick(self.fps)
+
+            self.phi = (self.Knobs[1].angle)*np.pi/180
+            self.theta = (self.Knobs[0].angle)*np.pi/180
+
+            return np.array([[np.exp(self.phij)*np.cos(self.theta/2),-(np.sin(self.theta/2))],
+                             [np.sin(self.theta/2),np.exp(-self.phij)*np.cos(self.theta/2)]])
+
                     
 
             
