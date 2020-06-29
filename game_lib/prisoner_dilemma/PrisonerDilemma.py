@@ -6,8 +6,8 @@ import gc
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 from game_lib.SharedClasses import BackButton, CircuitButton
 from game_lib.prisoner_dilemma.StartStage import StartStage
-
-from numpy import arctan, sqrt, pi
+from game_lib.prisoner_dilemma.AliceStage import AliceStage
+from numpy import array, arctan, sqrt, pi
 from copy import deepcopy
 
 
@@ -20,10 +20,11 @@ class PrisonerDilemma:
 
         self.keys = pygame.key.get_pressed()
 
-        self.data = {'BallProbDist': [1/3, 1/3, 1/3]}
+        self.data = {'J': array([[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]]),
+                     'UA': array([[1,0],[0,1]])}
 
         self.stages = [StartStage,
-                       # BobDecides,
+                       AliceStage,
                        # AliceDecides,
                        # ShowResult
                        ]

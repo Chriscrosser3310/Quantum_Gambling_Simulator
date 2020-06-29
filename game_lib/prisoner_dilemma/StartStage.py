@@ -1,7 +1,6 @@
 import pygame
 from game_lib.SharedClasses import DoorBar, ConfirmButton, BackButton, CircuitButton, TutorialBlock, Knob
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
-from numpy import arctan, sqrt, pi
 
 
 

@@ -3,6 +3,7 @@ from game_lib.parameters import IMAGE_PATH
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 import gc
+from numpy import pi
 
 class Door():
     
