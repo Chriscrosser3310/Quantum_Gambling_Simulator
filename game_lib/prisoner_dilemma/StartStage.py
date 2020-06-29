@@ -1,7 +1,7 @@
 import pygame
-import numpy
-from game_lib.SharedClasses import Door, DoorBar, ConfirmButton, BackButton, CircuitButton, TutorialBlock
+from game_lib.SharedClasses import DoorBar, ConfirmButton, BackButton, CircuitButton, TutorialBlock
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
+from numpy import arctan, sqrt, pi
 
 
 class Caption:
@@ -13,7 +13,7 @@ class Caption:
         font = pygame.font.SysFont('timesnewroman', 30)
         self.text = font.render('Let\'s discuss a strategy...', True, pygame.Color("black"))
         self.text_rect = self.text.get_rect()
-        self.text_rect.center = (pos[0], pos[1])
+        self.text_rect.center = pos
 
     def draw(self, surface):
         surface.blit(self.text, self.text_rect)
@@ -46,19 +46,21 @@ class Alice:
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
 
-
-class DoorBar():
+class Knob():
     width = 50
-    height = 100
+    height = 50
 
-    def __init__(self, pos, prob):
+    def __init__(self, pos, angle):
 
-        self.rect = pygame.Rect((0, 0), (self.width, prob * self.height))
-        self.rect.bottomleft = (pos[0] - self.width / 2, pos[1] + self.height / 2)
+        self.original_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/knob.jpg'), 
+                                            (self.width, self.height))     
+        self.image = self.original_image
+        self.rect = self.image.get_rect()
+        self.rect.center = pos
 
-        self.prob = prob
-        self.update_text("{:03.1f}π".format(1 * self.prob))  # self.text
-
+        self.angle = angle
+        
+        self.update_text("{:03.1f}π".format(1 * self.angle))  # self.text
         self.text_rect = self.text.get_rect()
         self.text_rect.center = (self.rect.centerx, self.rect.bottom - self.height - 20)
 
@@ -71,40 +73,47 @@ class DoorBar():
                 self.click = True
                 pygame.mouse.get_rel()
 
+    def update_rotation(self):
+        self.image = pygame.transform.rotate(self.original_image, self.angle*180/pi)
+        x, y = self.rect.center  # Save its current center.
+        self.rect = self.image.get_rect()  # Replace old rect with new rect.
+        self.rect.center = (x, y)  # Put the new rect's center at old center.
+    
     def update_text(self, message):
         font = pygame.font.SysFont('timesnewroman', 30)
         self.text = font.render(message, True, pygame.Color("black"))
-
+    
     def update_drag(self):
         if self.click:
-            dh = pygame.mouse.get_rel()[1]
-            original_h = self.rect.h
-            self.rect.h -= dh
+            #Dx = abs(pygame.mouse.get_pos()[0] - self.original_image.get_rect().center[0])
+            #Dy = abs(pygame.mouse.get_pos()[1] - self.original_image.get_rect().center[1])
+            dy = pygame.mouse.get_rel()[1]
+            # both dy, dx are negative, so -*- = +
+            angle = -dy/30#/Dy if Dy != 0 else 0
+    
+            self.angle += angle
+            
+            if self.angle < 0:
+                self.angle = 0
+            if self.angle > pi:
+                self.angle = pi
+                
+            self.update_rotation()
+            self.update_text("{:03.2f}π".format(self.angle/pi))
 
-            if self.rect.h > self.height:
-                self.rect.h = self.height
-
-            elif self.rect.h < 0:
-                self.rect.h = 0
-
-            center_moved = self.rect.h - original_h
-            self.rect.center = (self.rect.center[0], self.rect.center[1] - center_moved)
-
-            self.prob = self.rect.h / self.height
-            self.update_text("{:03.1f}π".format(1 * self.prob))
-
-    def update_with_prob(self, prob):
-        original_h = self.rect.h
-        self.rect.h = 100 * prob
-
-        center_moved = self.rect.h - original_h
-        self.rect.center = (self.rect.center[0], self.rect.center[1] - center_moved)
-
-        self.prob = prob
-        self.update_text("{:03.1f}π".format(1 * self.prob))
+    def update_with_angle(self, angle):
+        
+        self.angle = angle
+        if self.angle < 0:
+            self.angle = 0
+        if self.angle > pi:
+            self.angle = pi
+            
+        self.update_rotation()
+        self.update_text("{:03.2f}π".format(self.angle/pi))
 
     def draw(self, surface):
-        surface.fill(pygame.Color("red"), self.rect)
+        surface.blit(self.image, self.rect)
         surface.blit(self.text, self.text_rect)
 
 
@@ -123,13 +132,13 @@ class StartStage:
 
         self.keys = pygame.key.get_pressed()
 
-        self.dragged_db = None
+        self.dragged_k = None
         self.checked_cb = None
 
         cx, cy = self.screen_rect.center
         self.alice = Alice((cx - 100, 1.2 * cy))
         self.bob = Bob((cx + 100, 1.2 * cy))
-        self.DoorBars = [DoorBar((cx / 2, 0.5 * cy), self.data['BallProbDist'][0])]
+        self.Knobs = [Knob((cx / 2, 0.5 * cy), 0)]
 
         self.caption = Caption((cx, 0.5 * cy))
 
@@ -170,10 +179,10 @@ class StartStage:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
 
-                    for db in self.DoorBars:
-                        db.check_click(event.pos)
-                        if db.click == True:
-                            self.dragged_db = db
+                    for k in self.Knobs:
+                        k.check_click(event.pos)
+                        if k.click == True:
+                            self.dragged_k = k
                             break
 
                     # for cb in self.CheckBoxes:
@@ -192,16 +201,16 @@ class StartStage:
                     self.CircuitButton.check_click(event.pos)
 
                 '''
-                print(self.DoorBars.index(self.dragged_db) if self.dragged_db != None else None,
+                print(self.Knobs.index(self.dragged_k) if self.dragged_k != None else None,
                       self.CheckBoxes.index(self.checked_cb) if self.checked_cb != None else None)
                 '''
 
             elif event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
-                    for db in self.DoorBars:
-                        if db.click:
-                            db.click = False
-                            self.dragged_db = None
+                    for k in self.Knobs:
+                        if k.click:
+                            k.click = False
+                            self.dragged_k = None
                             break
 
             elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
@@ -214,8 +223,8 @@ class StartStage:
         """
         self.screen.fill(pygame.Color(BACKGROUND_COLOR))
 
-        for db in self.DoorBars:
-            db.draw(self.screen)
+        for k in self.Knobs:
+            k.draw(self.screen)
 
         # for d in self.Doors:
         #     d.draw(self.screen)
@@ -249,31 +258,31 @@ class StartStage:
             #         cb.force_unchecked()
             #     cb.update_click()
 
-            # DoorBar
+            # Knob
             for i in range(1):
-                db = self.DoorBars[i]
+                k = self.Knobs[i]
                 # cb = self.CheckBoxes[i]
                 # if not cb.checked:
-                db.update_drag()
+                k.update_drag()
 
-            # prob_sum = sum(self.DoorBars[i].prob for i in range(3))
+            # prob_sum = sum(self.Knobs[i].prob for i in range(3))
             # if prob_sum != 1:
-            #     if self.checked_cb == None or self.dragged_db == None:
-            #         for db in self.DoorBars:
-            #             db.update_with_prob(db.prob / prob_sum)
+            #     if self.checked_cb == None or self.dragged_k == None:
+            #         for k in self.Knobs:
+            #             k.update_with_prob(k.prob / prob_sum)
             #     else:
-            #         checked_db = self.DoorBars[self.CheckBoxes.index(self.checked_cb)]
-            #         checked_prob = checked_db.prob
-            #         if self.dragged_db.prob > 1 - checked_prob:
-            #             self.dragged_db.update_with_prob(1 - checked_prob)
-            #         for db in self.DoorBars:
-            #             if db != checked_db and db != self.dragged_db:
-            #                 db.update_with_prob(1 - checked_prob - self.dragged_db.prob)
+            #         checked_k = self.Knobs[self.CheckBoxes.index(self.checked_cb)]
+            #         checked_prob = checked_k.prob
+            #         if self.dragged_k.prob > 1 - checked_prob:
+            #             self.dragged_k.update_with_prob(1 - checked_prob)
+            #         for k in self.Knobs:
+            #             if k != checked_k and k != self.dragged_k:
+            #                 k.update_with_prob(1 - checked_prob - self.dragged_k.prob)
             #
-            # self.data['BallProbDist'] = [db.prob for db in self.DoorBars]
+            # self.data['BallProbDist'] = [k.prob for k in self.Knobs]
 
             # Ball
-            # self.Ball.update_distribution([db.prob for db in self.DoorBars])
+            # self.Ball.update_distribution([k.prob for k in self.Knobs])
 
             if self.ConfirmButton.click:
                 self.ConfirmButton.update_click()
