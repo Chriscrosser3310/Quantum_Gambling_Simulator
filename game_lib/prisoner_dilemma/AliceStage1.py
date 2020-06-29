@@ -1,8 +1,8 @@
 import pygame
 import numpy
-from game_lib.SharedClasses import ConfirmButton, BackButton, CircuitButton, Tutorial Block
+from game_lib.SharedClasses import ConfirmButton, BackButton, CircuitButton, TutorialBlock, Knob
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
-from prisoner_dilemma.StartStage import Knob
+
 
     
 class Officer():
