@@ -80,9 +80,9 @@ class CircuitDisplay():
         else:
             angle1 = arctan(sqrt(p01)/sqrt(p00 + p10))*2
             angle2 = arctan(sqrt(p10)/sqrt(p00))*2
-            self.qc_list[0].ry(angle1, 0)
+            self.qc_list[0].rx(angle1, 0)
             self.qc_list[0].x(0)
-            self.qc_list[0].cry(angle2, 0, 1)
+            self.qc_list[0].crx(angle2, 0, 1)
             self.qc_list[0].x(0)
         
         qc = qiskit.QuantumCircuit(2)
