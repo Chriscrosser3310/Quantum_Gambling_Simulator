@@ -9,6 +9,7 @@ from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.AliceOpensDoor import AliceOpensDoor
 from game_lib.monty_hall.BobSwitchesDoor import BobSwitchesDoor
 from game_lib.monty_hall.ShowResult import ShowResult
+from game_lib.monty_hall.RunOnRealQC import RunOnRealQC
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 from numpy import arctan, sqrt, pi
 from copy import deepcopy
@@ -224,7 +225,8 @@ class MontyHall():
                        BobChoosesDoor,
                        AliceOpensDoor,
                        BobSwitchesDoor,
-                       ShowResult]
+                       ShowResult,
+                       RunOnRealQC]
 
         self.stage_index = 0
 
