@@ -101,21 +101,21 @@ class BobSwitchesDoor():
                        (cx - Door.width*4//3, cy),
                        (3*cx/2 - Door.width*4//3, cy)]
         
-        # swap if bob did not first door 00
+         # swap if bob did not choose door 00, to ensure |0> is bob's initial choice
         if self.data['BobChosenDoor'] != 0:
             choice = self.data['BobChosenDoor']
             self.DoorPos[choice], self.DoorPos[0] = self.DoorPos[0], self.DoorPos[choice]
             self.BobPos[choice], self.BobPos[0] = self.BobPos[0], self.BobPos[choice]
+        
+        # swap Alice as well if Alice choosed 0
+        if self.Alice == 0:
+            self.Alice = choice
         
         #remove Alice's choice from Bob's image
         self.BobPos.pop(self.Alice)
         
         #remove and take out the pos of Alice's Choice
         self.OpenedDoorPos = self.DoorPos.pop(self.Alice)
-        
-        #Set the qubit default value of Bob's choice is 50:50
-        #here I assume BallPorbDist should be len2
-        
         
         self.DoorBars = [DoorBarBob(self.DoorPos[0], self.data['SwitchProbDist'][0]),
                          DoorBarBob(self.DoorPos[1], self.data['SwitchProbDist'][1])]

@@ -237,24 +237,26 @@ class Loader():
         self.text_rect.center = (cx, cy + 80)
     
     def update(self):
+        if self.mode == 'real':
+            coeff = 30
+        elif self.mode == 'simulator':
+            coeff = 5
+            
         self.time_count += 1
-        
         if self.time_count % 4 == 0:
             self.image_index += 1
             if self.image_index > 49:
                 self.image_index = 0
             self.image = self.images[self.image_index]
-        
-        if self.time_count > FPS*2:
+        if self.time_count > FPS*coeff:
+            if self.mode == 'real':
+                message = f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}'
+            elif self.mode == 'simulator':
+                message = f'Current Status: {self.job.status().name}'
             if self.job.status() in JOB_FINAL_STATES:
                 self.done = True
-        
-        if self.time_count > FPS*30:
             self.time_count = 0
-            if self.mode == 'real':
-                self.update_message(f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}')
-            elif self.mode == 'simulator':
-                self.update_message(f'Current Status: {self.job.status().name}')
+            self.update_message(message)
         
         if self.done:
             self.update_message(f'Done!')
@@ -340,7 +342,13 @@ class MontyHall():
             pygame.display.update() 
         if job.status() == JOB_FINAL_STATES[0]:
             result_dict = job.result().get_counts()
-            self.data['WinRate'] = [result_dict['0']/1000, result_dict['1']/1000]
+            if '1' not in result_dict:
+                aw, bw = 1, 0
+            elif '0' not in result_dict:
+                aw, bw = 0, 1
+            else:
+                aw, bw = result_dict['0']/1000, result_dict['1']/1000
+            self.data['WinRate'] = [aw, bw]
             self.data['Measurement'] = random.choice([0, 1], p = self.data['WinRate'])
         else:
             raise ValueError('job did not run correctly')
