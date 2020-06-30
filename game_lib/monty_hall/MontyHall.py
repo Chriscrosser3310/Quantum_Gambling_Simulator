@@ -340,7 +340,13 @@ class MontyHall():
             pygame.display.update() 
         if job.status() == JOB_FINAL_STATES[0]:
             result_dict = job.result().get_counts()
-            self.data['WinRate'] = [result_dict['0']/1000, result_dict['1']/1000]
+            if '1' not in result_dict:
+                aw, bw = 1, 0
+            elif '0' not in result_dict:
+                aw, bw = 0, 1
+            else:
+                aw, bw = result_dict['0']/1000, result_dict['1']/1000
+            self.data['WinRate'] = [aw, bw]
             self.data['Measurement'] = random.choice([0, 1], p = self.data['WinRate'])
         else:
             raise ValueError('job did not run correctly')
