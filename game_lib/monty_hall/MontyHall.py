@@ -1,9 +1,11 @@
 import pygame
 import qiskit
+from qiskit import IBMQ, assemble, transpile
+from qiskit.providers.jobstatus import JOB_FINAL_STATES
 import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 import gc
-from game_lib.SharedClasses import BackButton, CircuitButton
+from game_lib.SharedClasses import ConfirmButton, BackButton, CircuitButton
 from game_lib.monty_hall.AliceArrangesBalls import AliceArrangesBalls
 from game_lib.monty_hall.BobChoosesDoor import BobChoosesDoor
 from game_lib.monty_hall.AliceOpensDoor import AliceOpensDoor
@@ -11,7 +13,7 @@ from game_lib.monty_hall.BobSwitchesDoor import BobSwitchesDoor
 from game_lib.monty_hall.ShowResult import ShowResult
 from game_lib.monty_hall.RunOnRealQC import RunOnRealQC
 from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
-from numpy import arctan, sqrt, pi
+from numpy import random, arctan, sqrt, pi
 from copy import deepcopy
 
 
@@ -187,21 +189,85 @@ class CircuitDisplay():
         qc.mcx([4,5,2,3], 7)
         qc.x([1,4,3])
         qc.cx(6,7)
+        qc.x(7)
         qc.barrier()
         qc.measure(7,0)
         
         self.qc = qc
         
         self.update_image(self.qc)
-        
-    def calculate_result(self):
-        if self.qc != None:
-            pass
-        else:
-            raise ValueError('CircuitDisplay.qc not completed')
             
     def draw(self, surface):
         surface.blit(self.image, self.rect.topleft)
+
+
+class Loader():
+    
+    width = 150
+    height = 150
+
+    def __init__(self):
+        
+        self.job = None
+        self.mode = None
+
+        self.image_index = 0
+        self.images = [pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/qiskit_gif/frame_{i:02d}_delay-0.04s.png'),
+                                            (self.width, self.height)) for i in range(50)]
+        
+        cx, cy = pygame.display.get_surface().get_rect().center
+        
+        self.update_message('')
+        self.image = self.images[self.image_index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (cx, cy - 80)
+        
+        self.time_count = 0
+        self.done = False
+    
+    def take_job(self, job, mode):
+        self.job = job
+        self.mode = mode
+        self.update_message(f'Job sent to backend {job.backend().name()}')
+        
+    def update_message(self, message):
+        self.text = pygame.font.SysFont('timesnewroman', 30).render(message, True, pygame.Color("black"))
+        self.text_rect = self.text.get_rect()
+        cx, cy = pygame.display.get_surface().get_rect().center
+        self.text_rect.center = (cx, cy + 80)
+    
+    def update(self):
+        self.time_count += 1
+        
+        if self.time_count % 4 == 0:
+            self.image_index += 1
+            if self.image_index > 49:
+                self.image_index = 0
+            self.image = self.images[self.image_index]
+        
+        if self.time_count > FPS*2:
+            if self.job.status() in JOB_FINAL_STATES:
+                self.done = True
+        
+        if self.time_count > FPS*30:
+            self.time_count = 0
+            if self.mode == 'real':
+                self.update_message(f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}')
+            elif self.mode == 'simulator':
+                self.update_message(f'Current Status: {self.job.status().name}')
+        
+        if self.done:
+            self.update_message(f'Done!')
+
+
+    def draw(self, surface):
+        if self.done:
+            surface.blit(self.image, self.rect)
+            surface.blit(self.text, self.text_rect)
+        else:
+            surface.blit(self.image, self.rect)
+            surface.blit(self.text, self.text_rect)
+            self.update()
 
 
 class MontyHall():
@@ -219,7 +285,8 @@ class MontyHall():
                      'BobChosenDoor': -1,
                      'AliceOpenedDoor': -1,
                      'SwitchProbDist': [1, 0],
-                     'ExpectedValue': 0.0}
+                     'Measurement': 0.0,
+                     'WinRate': [0, 1]}
 
         self.stages = [AliceArrangesBalls,
                        BobChoosesDoor,
@@ -232,10 +299,12 @@ class MontyHall():
 
         self.quit = False
         self.back = False
+        
+        self.Loader = Loader()
 
-        cx, cy = self.screen_rect.center
         self.CircuitDisplay = CircuitDisplay(self.data)
-
+        
+        self.ConfirmButton = ConfirmButton()
         self.BackButton = BackButton()
         self.CircuitButton = CircuitButton()
 
@@ -250,13 +319,46 @@ class MontyHall():
             self.CircuitDisplay.update_circuit_3()
         elif self.stage_index == 4:
             self.CircuitDisplay.update_circuit_4()
-                
+    
+    def calculate_result(self, mode):
+        qc = self.CircuitDisplay.qc
+        if mode == 'real':
+            provider = IBMQ.load_account()
+            backend = provider.backends.ibmq_16_melbourne
+            qobj = assemble(transpile(qc, backend = backend), backend = backend, shots = 1000)
+            job = backend.run(qobj)
+        elif mode == 'simulator':
+            job = qiskit.execute(qc, qiskit.Aer.get_backend('qasm_simulator'), shots = 1000)
+        self.Loader.take_job(job, mode)
+        while not self.Loader.done:
+            self.load_event_loop()
+            if self.quit == True:
+                job.cancel()
+                return
+            self.screen.fill(pygame.Color(BACKGROUND_COLOR))
+            self.Loader.draw(self.screen)
+            pygame.display.update() 
+        if job.status() == JOB_FINAL_STATES[0]:
+            result_dict = job.result().get_counts()
+            self.data['WinRate'] = [result_dict['0']/1000, result_dict['1']/1000]
+            self.data['Measurement'] = random.choice([0, 1], p = self.data['WinRate'])
+        else:
+            raise ValueError('job did not run correctly')
+        while True:
+            self.confirm_event_loop()
+            if self.ConfirmButton.click:
+                self.ConfirmButton.update_click()
+                self.stage_index += 1
+                break
+            self.screen.fill(pygame.Color(BACKGROUND_COLOR))
+            self.Loader.draw(self.screen)
+            self.ConfirmButton.draw(self.screen)
+            pygame.display.update()
+        else:
+            raise ValueError('mode must either be real or simulator')
+        
+        
     def event_loop(self):
-        """
-        This is the event loop for the whole program.
-        Regardless of the complexity of a program, there should never be a need
-        to have more than one event loop.
-        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
                 self.quit = True
@@ -264,6 +366,23 @@ class MontyHall():
                 if event.button == 1:
                     self.BackButton.check_click(event.pos)
                     self.CircuitButton.check_click(event.pos)
+            elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
+                self.keys = pygame.key.get_pressed()
+                
+    def load_event_loop(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
+                self.quit = True
+            elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
+                self.keys = pygame.key.get_pressed()
+                
+    def confirm_event_loop(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
+                self.quit = True
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    self.ConfirmButton.check_click(event.pos)
             elif event.type in (pygame.KEYUP, pygame.KEYDOWN):
                 self.keys = pygame.key.get_pressed()
 
@@ -275,13 +394,14 @@ class MontyHall():
         self.BackButton.draw(self.screen)
         self.CircuitButton.draw(self.screen)
 
-        pygame.display.update()
+        pygame.display.update() 
 
     def main_loop(self):
         current_stage = None
         while not (self.quit or self.back):
             if self.stages[self.stage_index] != type(current_stage):
                 current_stage = self.stages[self.stage_index](self.data)
+                self.update_circuit()
             current_stage.main_loop()
             if current_stage.next_stage == True:
                 if self.stage_index == len(self.stages) - 1:
@@ -305,6 +425,13 @@ class MontyHall():
                         current_stage.show_circuit = False
                     self.render()
                     self.clock.tick(self.fps)
+            elif type(current_stage) == RunOnRealQC:
+                if current_stage.real_qc == True:
+                    self.calculate_result('real')
+                elif current_stage.real_qc == False:
+                    self.calculate_result('simulator')
+                else:
+                    raise ValueError('real_qc is not bool')
             else:
                 raise ValueError('Stage quits without proceeding')
 

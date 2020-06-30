@@ -75,14 +75,7 @@ class CheckBox():
 
 
 class AliceArrangesBalls():
-    """
-    A class to manage our event, game loop, and overall program flow.
-    """
     def __init__(self, data):
-        """
-        Get a reference to the screen (created in main); define necessary
-        attributes; and create our thing.
-        """
         self.data = data
         
         self.screen = pygame.display.get_surface()
@@ -127,11 +120,6 @@ class AliceArrangesBalls():
         
 
     def event_loop(self):
-        """
-        This is the event loop for the whole program.
-        Regardless of the complexity of a program, there should never be a need
-        to have more than one event loop.
-        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT or self.keys[pygame.K_ESCAPE]:
                 self.quit = True
@@ -177,10 +165,6 @@ class AliceArrangesBalls():
                 
 
     def render(self):
-        """
-        All drawing should be found here.
-        This is the only place that pygame.display.update() should be found.
-        """
         self.screen.fill(pygame.Color(BACKGROUND_COLOR))
         
         for db in self.DoorBars:

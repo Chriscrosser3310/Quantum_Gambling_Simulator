@@ -101,6 +101,7 @@ class RunOnRealQC():
         self.quit = False
         self.back = False
         self.show_circuit = False
+        self.real_qc = None
 
     def event_loop(self):
         for event in pygame.event.get():
@@ -132,12 +133,12 @@ class RunOnRealQC():
 
     def main_loop(self):
 
-        while not (self.quit or self.next_stage or self.back or self.show_circuit):
+        while not (self.quit or self.next_stage or self.back or self.show_circuit or self.real_qc != None):
             self.event_loop()
 
             if self.NoButton.click:
                 self.NoButton.update_click()
-                self.back = True
+                self.real_qc = False
             elif self.BackButton.click:
                 self.BackButton.update_click()
                 self.back = True
@@ -146,7 +147,7 @@ class RunOnRealQC():
                 self.show_circuit = True
             elif self.YesButton.click:
                 self.YesButton.update_click()
-                # connect to real qc
+                self.real_qc = True
 
             self.render()
             self.clock.tick(self.fps)

@@ -7,18 +7,20 @@ class Celebration():
     width = 400
     height = 200
 
-    def __init__(self, pos, expected_value):
+    def __init__(self, pos, data):
         self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/celebration.png'),
                                             (self.width, self.height))
         self.image_rect = self.image.get_rect()
         self.image_rect.center = pos
 
-        if expected_value < 0.5:
+        if data['Measurement'] == 0:
             self.text = pygame.font.SysFont('timesnewroman', 50).render(
                 "Alice Wins!", True, pygame.Color("black"))
-        else:
+        elif data['Measurement'] == 1:
             self.text = pygame.font.SysFont('timesnewroman', 50).render(
                 "Bob Wins!", True, pygame.Color("black"))
+        else:
+            raise ValueError('Not a possible measurement result')
 
         self.text_rect = self.text.get_rect()
         self.text_rect.center = (pos[0], pos[1] + 100)
@@ -34,21 +36,27 @@ class Message():
     width = 400
     height = 150
 
-    def __init__(self, pos, expected_value):
-        self.text = pygame.font.SysFont('timesnewroman', 30).render(
-            "Expected value is {}".format(expected_value), True, pygame.Color("blue"))
-        self.text_rect = self.text.get_rect()
-        self.text_rect.center = pos
+    def __init__(self, pos, data):
+        font = pygame.font.SysFont('timesnewroman', 30)
+        self.text0 = font.render(f"Measurement result is {data['Measurement']}", True, pygame.Color("blue"))
+        self.text1 = font.render('Approximate win rates:', True, pygame.Color("blue"))
+        self.text2 = font.render(f"Alice: {data['WinRate'][0]}; Bob: {data['WinRate'][1]}", True, pygame.Color("blue"))
+        self.text0_rect = self.text0.get_rect()
+        self.text0_rect.center = (pos[0], pos[1]-30)
+        self.text1_rect = self.text1.get_rect()
+        self.text1_rect.center = pos
+        self.text2_rect = self.text2.get_rect()
+        self.text2_rect.center = (pos[0], pos[1]+30)
 
         self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/frame.png'),
                                             (self.width, self.height))
         self.image_rect = self.image.get_rect()
         self.image_rect.center = pos
 
-        self.clickable = False
-
     def draw(self, surface):
-        surface.blit(self.text, self.text_rect.topleft)
+        surface.blit(self.text0, self.text0_rect.topleft)
+        surface.blit(self.text1, self.text1_rect.topleft)
+        surface.blit(self.text2, self.text2_rect.topleft)
         surface.blit(self.image, self.image_rect.topleft)
 
 
@@ -67,9 +75,8 @@ class ShowResult():
 
         # display objects
         self.Celebration = Celebration(
-            (cx, Celebration.height/2), self.data['ExpectedValue'])
-        self.Message = Message((cx, cy + Message.height/4),
-                               self.data['ExpectedValue'])
+            (cx, Celebration.height/2), self.data)
+        self.Message = Message((cx, cy + Message.height/4), self.data)
 
         # buttons
         self.ConfirmButton = ConfirmButton()

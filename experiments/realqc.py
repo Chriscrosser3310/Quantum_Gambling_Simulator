@@ -52,8 +52,8 @@ elif alice_open == 2:
 
 
 # Bob switches or not
-p0 = 0.5
-p1 = 0.5
+p0 = 0
+p1 = 1
 angle = arctan(sqrt(p1)/sqrt(p0))*2
 qc.ry(angle, 6)
 
@@ -72,6 +72,7 @@ qc.mcx([0,1,4,5], 7)
 qc.mcx([4,5,2,3], 7)
 qc.x([1,4,3])
 qc.cx(6,7)
+qc.x(7)
 qc.barrier()
 qc.measure(7,0)
 
@@ -89,3 +90,4 @@ while job_status not in JOB_FINAL_STATES:
 
 result = job.result()
 print(result.get_counts())
+print(type(result.get_counts()))
