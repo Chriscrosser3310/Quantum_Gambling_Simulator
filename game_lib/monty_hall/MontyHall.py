@@ -239,10 +239,8 @@ class Loader():
     def update(self):
         if self.mode == 'real':
             coeff = 30
-            message = f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}'
         elif self.mode == 'simulator':
             coeff = 5
-            message = f'Current Status: {self.job.status().name}'
             
         self.time_count += 1
         if self.time_count % 4 == 0:
@@ -251,6 +249,10 @@ class Loader():
                 self.image_index = 0
             self.image = self.images[self.image_index]
         if self.time_count > FPS*coeff:
+            if self.mode == 'real':
+                message = f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}'
+            elif self.mode == 'simulator':
+                message = f'Current Status: {self.job.status().name}'
             if self.job.status() in JOB_FINAL_STATES:
                 self.done = True
             self.time_count = 0
