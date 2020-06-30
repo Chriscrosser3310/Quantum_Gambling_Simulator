@@ -1,7 +1,49 @@
 import pygame
 from game_lib.monty_hall.MontyHall import MontyHall
 from game_lib.prisoner_dilemma.PrisonerDilemma import PrisonerDilemma
-from game_lib.parameters import BACKGROUND_COLOR, FPS
+from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
+
+
+class Title():
+    width = 740
+    height = 200
+
+    def __init__(self, pos):
+        self.image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/title.png'),
+                                            (self.width, self.height))
+        self.image_rect = self.image.get_rect()
+        self.image_rect.center = pos
+
+        self.clickable = False
+
+    def draw(self, surface):
+        surface.blit(self.image, self.image_rect.topleft)
+
+
+class AliceAndBob():
+    width = 100
+    height = 200
+
+    def __init__(self, pos):
+        self.bob_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/bob.jpg'),
+                                                (self.width * 3 // 2, self.height * 3 // 4))
+
+        self.bob_rect = self.bob_image.get_rect()
+        self.bob_rect.center = (pos[0] + 300, pos[1])
+
+        self.chosen = False
+
+        self.alice_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/alice.jpg'),
+                                                  (self.width * 3 // 2, self.height * 3 // 4))
+
+        self.alice_rect = self.alice_image.get_rect()
+        self.alice_rect.center = (pos[0] - 300, pos[1])
+
+        self.clickable = False
+
+    def draw(self, surface):
+        surface.blit(self.bob_image, self.bob_rect.topleft)
+        surface.blit(self.alice_image, self.alice_rect.topleft)
 
 
 class StartButton():
@@ -43,6 +85,11 @@ class Menu():
         self.keys = pygame.key.get_pressed()
 
         cx, cy = self.screen_rect.center
+
+        #display
+        self.Title = Title((cx, 100))
+        self.AliceAndBob = AliceAndBob((cx, cy))
+
         self.StartButtons = [StartButton('Monty Hall', MontyHall, (cx, cy - 50)), 
                              StartButton('Prisoner Dilemma', PrisonerDilemma, (cx, cy))]
 
@@ -65,6 +112,8 @@ class Menu():
         for sb in self.StartButtons:
             sb.draw(self.screen)
 
+        self.Title.draw(self.screen)
+        self.AliceAndBob.draw(self.screen)
         pygame.display.update()
 
     def main_loop(self):
