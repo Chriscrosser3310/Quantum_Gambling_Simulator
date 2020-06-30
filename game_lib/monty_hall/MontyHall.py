@@ -240,7 +240,7 @@ class Loader():
         if self.mode == 'real':
             coeff = 30
         elif self.mode == 'simulator':
-            coeff = 5
+            coeff = 2
             
         self.time_count += 1
         if self.time_count % 4 == 0:

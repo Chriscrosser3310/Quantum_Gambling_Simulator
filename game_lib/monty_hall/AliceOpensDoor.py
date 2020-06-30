@@ -21,12 +21,19 @@ class DoorAlice():
         self.bob_rect.center = (pos[0] - self.width*4//3, pos[1])
         
         self.chosen = False
+        self.lock = False
         
         self.alice_image = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/alice.jpg'),
                                               (self.width*3//2, self.height*3//4))
         
         self.alice_rect = self.alice_image.get_rect()
         self.alice_rect.center = (pos[0] - self.width*4//3, pos[1])
+        
+        self.cross = pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/cross.png'),
+                                              (self.width*3//4, self.height*3//8))
+        
+        self.cross_rect = self.cross.get_rect()
+        self.cross_rect.center = pos
         
         self.images = [pygame.transform.scale(pygame.image.load(f'{IMAGE_PATH}/door.png'),
                                             (self.width, self.height)),
@@ -48,13 +55,16 @@ class DoorAlice():
         self.checked = False
 
     def check_click(self, pos):
-        if self.rect.collidepoint(pos) and not self.chosen:
+        if self.rect.collidepoint(pos) and not (self.chosen or self.lock):
             self.click = True
     
     def draw(self, surface):
         if self.chosen:
             surface.blit(self.bob_image, self.bob_rect.topleft)
             surface.blit(self.images[0], self.rect.topleft)
+        elif self.lock:
+            surface.blit(self.images[0], self.rect.topleft)
+            surface.blit(self.cross, self.cross_rect.topleft)
         else:    
             if self.checked:
                 surface.blit(self.alice_image, self.alice_rect.topleft)
@@ -87,7 +97,24 @@ class AliceOpensDoor:
                            DoorAlice((3 * cx / 2, cy), self.data)]
         
         self.DoorAlices[self.data['BobChosenDoor']].chosen = True
-
+        
+        # the door with smaller prob cannot be opened!
+        prob = None
+        index = None
+        for i in range(3):
+            if not self.DoorAlices[i].chosen:
+                if prob == None and index == None:
+                    prob = self.data['BallProbDist'][i]
+                    index = i
+                else:
+                    this_prob = self.data['BallProbDist'][i]
+                    if prob > this_prob:
+                        self.DoorAlices[index].lock = True
+                    elif prob == this_prob:
+                        pass
+                    else:
+                        self.DoorAlices[i].lock = True
+                        
         self.ConfirmButton = ConfirmButton()
         self.CircuitButton = CircuitButton()
         self.BackButton = BackButton()
@@ -140,7 +167,7 @@ class AliceOpensDoor:
     def main_loop(self):
         
         while not (self.quit or self.next_stage or self.back or self.show_circuit):
-            self.event_loop()           
+            self.event_loop() 
 
             # CheckAlice
             for i in range(0, 3):
