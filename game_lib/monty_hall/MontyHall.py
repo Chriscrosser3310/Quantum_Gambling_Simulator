@@ -237,24 +237,24 @@ class Loader():
         self.text_rect.center = (cx, cy + 80)
     
     def update(self):
+        if self.mode == 'real':
+            coeff = 30
+            message = f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}'
+        elif self.mode == 'simulator':
+            coeff = 5
+            message = f'Current Status: {self.job.status().name}'
+            
         self.time_count += 1
-        
         if self.time_count % 4 == 0:
             self.image_index += 1
             if self.image_index > 49:
                 self.image_index = 0
             self.image = self.images[self.image_index]
-        
-        if self.time_count > FPS*2:
+        if self.time_count > FPS*coeff:
             if self.job.status() in JOB_FINAL_STATES:
                 self.done = True
-        
-        if self.time_count > FPS*30:
             self.time_count = 0
-            if self.mode == 'real':
-                self.update_message(f'Current Status: {self.job.status().name}, estimate queue position: {self.job.queue_position()}')
-            elif self.mode == 'simulator':
-                self.update_message(f'Current Status: {self.job.status().name}')
+            self.update_message(message)
         
         if self.done:
             self.update_message(f'Done!')
