@@ -7,6 +7,8 @@ from game_lib.parameters import BACKGROUND_COLOR, FPS, IMAGE_PATH
 from game_lib.SharedClasses import BackButton, CircuitButton
 from game_lib.prisoner_dilemma.StartStage import StartStage
 from game_lib.prisoner_dilemma.AliceStage import AliceStage
+from game_lib.prisoner_dilemma.BobStage import BobStage
+
 from numpy import array, arctan, sqrt, pi
 from copy import deepcopy
 
@@ -25,6 +27,7 @@ class PrisonerDilemma:
 
         self.stages = [StartStage,
                        AliceStage,
+                       BobStage,
                        # AliceDecides,
                        # ShowResult
                        ]

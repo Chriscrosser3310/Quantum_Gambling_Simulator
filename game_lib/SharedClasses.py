@@ -4,6 +4,7 @@ import matplotlib.backends.backend_agg as agg
 import matplotlib.pyplot as plt
 import gc
 from numpy import pi
+import math
 
 class Door():
     
@@ -213,18 +214,31 @@ class Knob():
     
     def update_drag(self):
         if self.click:
-            #Dx = abs(pygame.mouse.get_pos()[0] - self.original_image.get_rect().center[0])
-            #Dy = abs(pygame.mouse.get_pos()[1] - self.original_image.get_rect().center[1])
-            dy = pygame.mouse.get_rel()[1]
-            # both dy, dx are negative, so -*- = +
-            angle = -dy/30#/Dy if Dy != 0 else 0
-    
-            self.angle += angle
+
+            dx, dy = pygame.mouse.get_rel()
+            x_prev,y_prev = pygame.mouse.get_pos()
+            x_now,y_now=x_prev+dx,y_prev+dy
             
-            if self.angle < 0:
-                self.angle = 0
-            if self.angle > pi:
-                self.angle = pi
+            x_prev-=self.rect.center[0]
+            y_prev-=self.rect.center[1]
+            x_now-=self.rect.center[0]
+            y_now-=self.rect.center[1]
+
+            y_prev=-y_prev
+            y_now=-y_now
+            ##(x_prev,y_prev) and (x_now,y_now) is now relative to the center of knob
+
+            angle=math.atan2(y_now,x_now)-math.atan2(y_prev,x_prev)
+            if angle>pi/2:
+                angle-=2*pi
+            elif angle<-pi/2:
+                angle+=2*pi
+            
+##            print("angle:",self.angle,angle)
+            self.angle += angle
+
+            self.angle=max(self.angle,0)
+            self.angle=min(self.angle,pi)
                 
             self.update_rotation()
             self.update_text("{:03.2f}π".format(self.angle/pi))
