@@ -10,7 +10,7 @@ class Caption:
     def __init__(self, pos):
         self.rect = pygame.Rect((0, 0), (self.width, self.height))
         font = pygame.font.SysFont('timesnewroman', 50)
-        self.text = font.render('Is Bob...?', True, pygame.Color("black"))
+        self.text = font.render('Is Alice...?', True, pygame.Color("black"))
         self.text_rect = self.text.get_rect()
         self.text_rect.center = pos
 
@@ -110,7 +110,7 @@ class GBButton():
         self.rect.bottomleft[0], self.rect.bottomleft[1] - self.text0.get_height()))
 
 
-class AliceStage:
+class BobStage:
 
     def __init__(self, data):
 
